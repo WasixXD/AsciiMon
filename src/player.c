@@ -8,7 +8,7 @@ void refresh_pos(WINDOW *win, Player *p) {
     
 }
 
-void handle_input(int input, Player *p, char **map) {
+void handle_input(int input, Player *p, Tile **map) {
     if(input == 'w' && is_walkable(map, p->x, p->y - 1)) {
         p->y--;
     } else if(input == 's' && is_walkable(map, p->x, p->y + 1)) {

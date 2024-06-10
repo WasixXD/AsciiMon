@@ -2,6 +2,7 @@
 #define player_h
 #include <ncurses.h>
 
+#include "world.h"
 typedef struct {
     int x;
     int y;
@@ -13,6 +14,6 @@ void draw_player(WINDOW *win, Player *p);
 
 void refresh_pos(WINDOW *win, Player *p);
 
-void handle_input(int input, Player *p, char **map);
+void handle_input(int input, Player *p, Tile **map);
 
 #endif
