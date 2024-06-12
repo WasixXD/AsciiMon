@@ -1,14 +1,7 @@
 #ifndef player_h
 #define player_h
 #include <ncurses.h>
-
 #include "world.h"
-typedef struct {
-    int x;
-    int y;
-    char body;
-} Player;
-
 
 void draw_player(WINDOW *win, Player *p);
 

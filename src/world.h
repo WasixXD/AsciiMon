@@ -5,6 +5,36 @@
 #include <ncurses.h>
 #include <stdbool.h>
 
+#define MAX_MOVES 4
+#define MAX_MONS 6
+
+
+
+typedef struct {
+    char *name;
+    char *type;
+    int power;
+    int mp;
+
+} Move;
+
+typedef struct {
+    int max_hp;
+    int current_hp;
+    int lvl;
+    char *name;
+    char *type;
+    char sprite[3][8];
+    Move moves[MAX_MOVES];
+} Mon;
+
+typedef struct {
+    int x;
+    int y;
+    char body;
+    Mon mons[MAX_MONS];
+} Player;
+
 typedef enum  {
     WILD_MON_BATTLE,
     NPC_DIALOG,
@@ -28,6 +58,7 @@ typedef struct {
     int c_map_rows;
     int c_map_cols;
     WINDOW *dialog;
+    Mon *all_mons;
 } GameManager;
 
 void draw_world(GameManager gm);
@@ -36,9 +67,10 @@ bool is_walkable(Tile **map, int nextX, int nextY);
 
 Tile** parse_world(char **map, int map_cols, int map_rows);
 
-
 Events check_for_event(int p_x, int p_y, GameManager gm);
 
-void handle_event(Events e, GameManager gm);
+void allocate_mons(GameManager *gm);
+
+void handle_event(Events e, GameManager gm, Player *p);
 
 #endif

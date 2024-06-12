@@ -27,6 +27,7 @@ int main(void) {
         "###        #########",
         "#####     ##########",
         "####################",
+        "####################",
     };
     int map_rows = sizeof(map) / sizeof(map[0]);
     int map_cols = strlen(map[0]);
@@ -40,15 +41,16 @@ int main(void) {
     noecho();
     curs_set(0);
 
-    Player p = { .x = 1, .y = 1, .body = player_body };
-    WINDOW *win = newwin(map_rows, map_cols, p.x, p.y);
-    
     const int dialogue_h =  5;
     const int dialogue_w = 50;
-    WINDOW *dialogue = newwin(dialogue_h, dialogue_w, map_cols - dialogue_h, 0);
+    WINDOW *dialogue = newwin(dialogue_h, dialogue_w, map_rows + 2, 0);
     box(dialogue, 0, 0);
     mvwprintw(dialogue, 3, 3, "WASD - MOVE | Q - QUIT");
-    wrefresh(dialogue);
+
+
+    Player p = { .x = 1, .y = 1, .body = player_body };
+
+    WINDOW *win = newwin(map_rows, map_cols, p.x, p.y);
 
     GameManager gm = {
         .current_map = parsed_map, 
@@ -56,10 +58,14 @@ int main(void) {
         .c_map_rows = map_rows, 
         .main_w = win,
         .dialog = dialogue,
-        };
+    };
+    allocate_mons(&gm);
+    p.mons[0] = gm.all_mons[0];
 
+    
+
+    draw_world(gm);
     draw_player(gm.main_w, &p);
-
     //gameloop
     while(1) {
 
@@ -70,7 +76,7 @@ int main(void) {
 
         Events event = check_for_event(p.x, p.y, gm);
 
-        handle_event(event, gm);
+        handle_event(event, gm, &p);
 
         if(input == 'q') {
             break;
@@ -78,7 +84,7 @@ int main(void) {
 
         // TODO: slow?
         draw_world(gm);
-        draw_player(win, &p);
+        draw_player(gm.main_w, &p);
 
     }
 

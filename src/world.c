@@ -1,13 +1,26 @@
-#include "world.h"
-#include <stdbool.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <ncurses.h>
+#include <stdbool.h>
 #include <malloc.h>
 #include <time.h>
-#include <stdlib.h>
+#include <dirent.h>
+#include <string.h>
 
+#include "world.h"
+#include "player.h"
+#include "battle.h"
 
-
-// #include "player.h"
+// lazy
+const Move all_possible_moves[] = {
+    {.name = "Tackle", .power = 80, .type = "Normal", .mp = 20 },
+    {.name = "Ember", .power = 110, .type = "Fire", .mp = 15 },
+    {.name = "Bubbles", .power = 110, .type = "Water", .mp = 15 },
+    {.name = "Leafs", .power = 110, .type = "Grass", .mp = 15 },
+    {.name = "Ice Spikes", .power = 110, .type = "Ice", .mp = 15 },
+    {.name = "Bite", .power = 100, .type = "Dark", .mp = 25 },
+    {.name = "Punch", .power = 100, .type = "Fighter", .mp = 25 },
+};
 
 void draw_world(GameManager gm) {
 
@@ -62,6 +75,8 @@ Tile** parse_world(char **map, int map_cols, int map_rows) {
     return parsed;
 }
 
+
+// In theory the game can only handle one event per time, so, its better to avoid having a battle aside a npc
 Events check_for_event(int p_x, int p_y, GameManager gm) {
     Tile current_player_tile = gm.current_map[p_y][p_x];
     srand(time(NULL));
@@ -86,31 +101,104 @@ Events check_for_event(int p_x, int p_y, GameManager gm) {
 }
 
 
-void handle_event(Events e, GameManager gm) {
+void handle_event(Events e, GameManager gm, Player *p) {
     switch(e) {
         case WILD_MON_BATTLE: {
-            // TODO: Refactor
-            WINDOW *battle_win = newwin(gm.c_map_rows + 1, gm.c_map_cols + 1, 1, 1);
-            mvwprintw(battle_win, 1, 1,"Time to Battle");
-            mvwprintw(battle_win, 2, 1, "Try do run");
-
-            wrefresh(battle_win);
-            int input;
-            while(1) {
-                input = wgetch(battle_win);
-                if(input == 'f') {
-                    break;
-                }
-            }
-            
+            battle(p);
             draw_world(gm);
             break;
         }
 
         case NPC_DIALOG: {
-            mvwprintw(gm.dialog, 1, 1, "A sport game, Dad'll like that!");
+            mvwprintw(gm.dialog, 1, 1, "Testando...ç?#");
             wrefresh(gm.dialog); 
             break;
         }
+
+        case NONE: {
+            wrefresh(gm.dialog);
+            break;
+        }
     }
+}
+
+int txt_filter(const struct dirent *entry) {
+    const char *ext = strrchr(entry->d_name, '.');
+    return (ext && strcmp(ext, ".txt") == 0);
+}
+
+
+// This had added a high level of abstraction
+void allocate_mons(GameManager *gm) {
+    const char *mon_folder_path = "./mons/";
+    struct dirent **namelist;
+    int n; 
+    int mon_i = 0;
+    n = scandir(mon_folder_path, &namelist, txt_filter, alphasort);
+
+    gm->all_mons = (Mon*)malloc(n * sizeof(Mon));
+    if(n < 0) {
+        perror("Scandir");
+        return;
+    }
+
+
+    while(n--) {
+        int parser_p = 0; 
+        int mon_move_i = 0;
+        int sprite_row = 0;
+        Mon new_mon;
+
+        char filePath[50];
+        // concat ./mons/ + name of the file
+        snprintf(filePath, sizeof(filePath), "%s%s", mon_folder_path, namelist[n]->d_name);
+        new_mon.name = namelist[n]->d_name;
+        new_mon.lvl = 1;
+        // open file
+        FILE *fptr = fopen(filePath, "r");   
+        if(fptr != NULL) {
+            int bufferL = 255;
+            char buffer[bufferL];
+
+            //read each line
+            while(fgets(buffer, bufferL, fptr) != NULL) {
+                buffer[strcspn(buffer, "\n")] = 0;
+
+                if(strcmp(buffer, "___") == 0) {
+                    parser_p++;
+                } else {
+                    // if 0, then we reading the sprites
+                    if(parser_p == 0) {
+                        strcpy(new_mon.sprite[sprite_row], buffer);
+                        sprite_row++;
+                    } else if(parser_p == 1) { // if 1, then max_hp
+                        new_mon.max_hp = atoi(buffer);
+                        new_mon.current_hp = atoi(buffer);
+                    } else if(parser_p == 2) { //if 2, then type
+                        new_mon.type = strdup(buffer);
+                    } else if(parser_p == 3) { //if 3, then we reading moves
+                        int move_index = atoi(buffer);
+                        Move c_move = all_possible_moves[move_index];
+                        new_mon.moves[mon_move_i] = c_move;
+                        mon_move_i++;
+                    }
+
+                }
+                
+            } 
+
+            
+        } else {
+            printf("É NULL");
+        }
+
+        gm->all_mons[mon_i] = new_mon;
+        fclose(fptr);
+        free(namelist[n]);
+        mon_i++;
+
+    }
+
+    
+    free(namelist);
 }
