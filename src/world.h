@@ -59,9 +59,12 @@ typedef struct {
     int c_map_cols;
     WINDOW *dialog;
     Mon *all_mons;
+    int q_mons;
 } GameManager;
 
 void draw_world(GameManager gm);
+
+void draw_dialogue(GameManager gm);
 
 bool is_walkable(Tile **map, int nextX, int nextY);
 

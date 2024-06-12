@@ -44,8 +44,7 @@ int main(void) {
     const int dialogue_h =  5;
     const int dialogue_w = 50;
     WINDOW *dialogue = newwin(dialogue_h, dialogue_w, map_rows + 2, 0);
-    box(dialogue, 0, 0);
-    mvwprintw(dialogue, 3, 3, "WASD - MOVE | Q - QUIT");
+    
 
 
     Player p = { .x = 1, .y = 1, .body = player_body };
@@ -62,8 +61,7 @@ int main(void) {
     allocate_mons(&gm);
     p.mons[0] = gm.all_mons[0];
 
-    
-
+    draw_dialogue(gm);
     draw_world(gm);
     draw_player(gm.main_w, &p);
     //gameloop
@@ -84,6 +82,7 @@ int main(void) {
 
         // TODO: slow?
         draw_world(gm);
+        draw_dialogue(gm);
         draw_player(gm.main_w, &p);
 
     }

@@ -32,6 +32,12 @@ void draw_world(GameManager gm) {
     }
 }
 
+void draw_dialogue(GameManager gm) {
+    mvwprintw(gm.dialog, 3, 3, "WASD - MOVE | Q - QUIT");
+    box(gm.dialog, 0, 0);
+    wrefresh(gm.dialog);
+}
+
 bool is_walkable(Tile **map, int next_x, int next_y) {
     return map[next_y][next_x].walkable;
 }
@@ -49,18 +55,18 @@ Tile** parse_world(char **map, int map_cols, int map_rows) {
 
             switch(current) {
                 case '#': {
-                    Tile wall_tile = (Tile){.walkable = false, .type = "WALL", .x = j, .y = i, .sprite = '#'};
+                    Tile wall_tile = (Tile){.walkable = false, .type = "WALL", .x = j, .y = i, .sprite = '°'};
                     parsed[i][j] = wall_tile;
                     break;
 
                 }
                 case ' ': {
-                    Tile ground_tile = (Tile){.walkable = true, .type = "GROUND", .x = j, .y = i, .sprite = '.'};
+                    Tile ground_tile = (Tile){.walkable = true, .type = "GROUND", .x = j, .y = i, .sprite = ' '};
                     parsed[i][j] = ground_tile;
                     break;
                 }
                 case ';': {
-                    Tile grass_tile = (Tile){.walkable = true, .type = "GRASS", .x = j, .y = i, .sprite = ';'};
+                    Tile grass_tile = (Tile){.walkable = true, .type = "GRASS", .x = j, .y = i, .sprite = 'w'};
                     parsed[i][j] = grass_tile;
                     break;
                 }
@@ -104,19 +110,19 @@ Events check_for_event(int p_x, int p_y, GameManager gm) {
 void handle_event(Events e, GameManager gm, Player *p) {
     switch(e) {
         case WILD_MON_BATTLE: {
-            battle(p);
+            battle(p, gm);
             draw_world(gm);
             break;
         }
 
         case NPC_DIALOG: {
-            mvwprintw(gm.dialog, 1, 1, "Testando...ç?#");
+            mvwprintw(gm.dialog, 1, 1, "Hi, how it's going?");
             wrefresh(gm.dialog); 
             break;
         }
 
         case NONE: {
-            wrefresh(gm.dialog);
+            draw_dialogue(gm);
             break;
         }
     }
@@ -134,6 +140,7 @@ void allocate_mons(GameManager *gm) {
     struct dirent **namelist;
     int n; 
     int mon_i = 0;
+
     n = scandir(mon_folder_path, &namelist, txt_filter, alphasort);
 
     gm->all_mons = (Mon*)malloc(n * sizeof(Mon));
@@ -198,7 +205,6 @@ void allocate_mons(GameManager *gm) {
         mon_i++;
 
     }
-
-    
+    gm->q_mons = mon_i;
     free(namelist);
 }

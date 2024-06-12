@@ -5,7 +5,7 @@
 #include "world.h"
 
 
-void battle(Player *p);
+void battle(Player *p, GameManager gm);
 
 
 #endif
