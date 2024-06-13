@@ -9,6 +9,7 @@
 #define MAX_MONS 6
 
 
+void sleep_seconds(int seconds);
 
 typedef struct {
     char *name;
@@ -22,6 +23,7 @@ typedef struct {
     int max_hp;
     int current_hp;
     int lvl;
+    int total_moves;
     char *name;
     char *type;
     char sprite[3][8];

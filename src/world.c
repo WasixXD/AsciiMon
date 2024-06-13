@@ -11,6 +11,19 @@
 #include "player.h"
 #include "battle.h"
 
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
+
+void sleep_seconds(int seconds) {
+#ifdef _WIN32
+    Sleep(seconds * 1000);
+#else
+    sleep(seconds);
+#endif
+}
 // lazy
 const Move all_possible_moves[] = {
     {.name = "Tackle", .power = 80, .type = "Normal", .mp = 20 },
@@ -23,7 +36,6 @@ const Move all_possible_moves[] = {
 };
 
 void draw_world(GameManager gm) {
-
     for(int i = 0; i < gm.c_map_rows; i++) {
         for(int j = 0; j < gm.c_map_cols; j++) {
             mvwaddch(gm.main_w, i, j, gm.current_map[i][j].sprite);
@@ -55,7 +67,7 @@ Tile** parse_world(char **map, int map_cols, int map_rows) {
 
             switch(current) {
                 case '#': {
-                    Tile wall_tile = (Tile){.walkable = false, .type = "WALL", .x = j, .y = i, .sprite = '°'};
+                    Tile wall_tile = (Tile){.walkable = false, .type = "WALL", .x = j, .y = i, .sprite = '#'};
                     parsed[i][j] = wall_tile;
                     break;
 
@@ -73,6 +85,11 @@ Tile** parse_world(char **map, int map_cols, int map_rows) {
                 case 'n': {
                     Tile npc_tile = (Tile){.walkable = false, .type = "NPC", .x = j, .y = i, .sprite = 'n'};
                     parsed[i][j] = npc_tile;
+                    break;
+                }
+                case 't': {
+                    Tile trainer_tile = (Tile){.walkable = false, .type = "TRAINER", .x = j, .y = i, .sprite = 't'};
+                    parsed[i][j] = trainer_tile;
                     break;
                 }
             }
@@ -199,6 +216,7 @@ void allocate_mons(GameManager *gm) {
             printf("É NULL");
         }
 
+        new_mon.total_moves = mon_move_i;
         gm->all_mons[mon_i] = new_mon;
         fclose(fptr);
         free(namelist[n]);
