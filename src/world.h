@@ -66,7 +66,7 @@ typedef struct {
 
 void draw_world(GameManager gm);
 
-void draw_dialogue(GameManager gm);
+void draw_dialogue(WINDOW *dialogue, int y, int x, char *diag);
 
 bool is_walkable(Tile **map, int nextX, int nextY);
 

@@ -12,8 +12,6 @@ void draw_mon(WINDOW *win, Mon *mon, int x, int y) {
     }
 }
 
-
-
 char* int_to_string(int num) {
     
     int length = snprintf(NULL, 0, "%d", num);
@@ -48,7 +46,6 @@ void draw_status(WINDOW *win, Mon *mon, int y, int x) {
     mvwaddstr(win, y + 1, x - (strlen(mon->name) + 4), health_bar(mon->max_hp, mon->current_hp));
 }
 
-
 void draw_options(WINDOW *win, int y, int x, char *text) {
     box(win, 0, 0);
     mvwaddstr(win, y, x, text);
@@ -73,7 +70,6 @@ int calc_dmg(int nivel, int poder, int mod) {
 void apply_dmg(Mon *mon, int dmg) {
     if(mon->current_hp > 0) {
         mon->current_hp -= dmg;
-
     }
 }
 
@@ -82,11 +78,62 @@ bool check_if_defeated(Mon *mon) {
     return mon->current_hp <= 0;
 }
 
+
+int get_mon_move(Mon *mon) {
+    WINDOW *win_select = newwin(8, 15, 5, 8);
+    WINDOW *win_options = newwin(8, 15, 5, 24);
+
+    box(win_options, 0, 0);
+    box(win_select, 0, 0);
+
+    int current = 2;
+
+    int input = 0;
+
+    // first draw the moves 
+    for(int i = 0; i < mon->total_moves; i++) {
+        mvwaddstr(win_select, i + 2, 2, int_to_string(i + 1));
+        mvwaddstr(win_select, i + 2, 4, mon->moves[i].name);
+        wrefresh(win_select);
+    }
+
+    mvwaddch(win_select, current, 1, '*');
+
+    do {
+        input = wgetch(win_select);
+        mvwaddch(win_select, current, 1, ' ');
+
+        if(input == 'w' && current > 2) {
+            current--;
+        } else if(input == 's' && current <= mon->total_moves) {
+            current++;
+        }
+
+        wclear(win_options);
+
+        // handle what current is selected
+        draw_options(win_options, 1, 1, mon->moves[current - 2].name);
+        draw_options(win_options, 2, 1, int_to_string(mon->moves[current - 2].power));
+        draw_options(win_options, 3, 1, int_to_string(mon->moves[current - 2].mp));
+        draw_options(win_options, 4, 1, mon->moves[current - 2].type);
+
+        mvwaddch(win_select, current, 1, '*');
+        wrefresh(win_select);
+    } while(input != 'f');
+
+    wclear(win_options);
+    wrefresh(win_options);
+    delwin(win_options);
+
+    wclear(win_select);
+    wrefresh(win_select);
+    delwin(win_select);
+
+    // -2 because starts at 2
+    return current - 2;
+}
+
 void battle(Player *p, GameManager gm) {
-    wclear(gm.main_w);
-    wclear(gm.dialog);
-    wrefresh(gm.main_w);
-    wrefresh(gm.dialog);
 
     int turn = 0;
 
@@ -149,8 +196,22 @@ void battle(Player *p, GameManager gm) {
             }
             if(input == 'q') {
                 wclear(options);
-                apply_dmg(&random_mon, 10); 
-                draw_options(options, 1, 1, "Você atacou!");
+                draw_options(options, 1, 1, "w - MOVE UP | s - MOVE DOWN | f - CHOOSE");
+                int move_index = get_mon_move(&p->mons[0]);
+                Move p_move = p->mons[0].moves[move_index];
+                wclear(options);
+
+                if(p_move.mp > 0) {
+                    int dano = calc_dmg(p->mons[0].lvl, p_move.power, 1);
+                    apply_dmg(&random_mon, dano); 
+                    draw_options(options, 1, 1, "used ");
+                    draw_options(options, 1, 6, p_move.name);
+                    p->mons[0].moves[move_index].mp--;
+
+                } else {
+                    draw_options(options, 1, 1, "You dont have MP to use this move");
+                }
+
 
                 sleep_seconds(1);
             }
@@ -173,8 +234,9 @@ void battle(Player *p, GameManager gm) {
             Move random_move = random_mon.moves[random_move_index];
 
             if(random_move.mp > 0) {
+                random_mon.moves[random_move_index].mp--;
                 draw_options(options, 1, 1, random_mon.name);
-                draw_options(options, 1, r_mon_name_len + 1, " Usou ");
+                draw_options(options, 1, r_mon_name_len + 1, " used ");
                 draw_options(options, 1, r_mon_name_len + 7, random_move.name);
 
                 // TODO: Find a way to calculate how effective was the dmg
@@ -193,7 +255,7 @@ void battle(Player *p, GameManager gm) {
 
     wclear(options);
     wrefresh(options);
-
+    
     wclear(battle_win);
     wrefresh(battle_win);
 }

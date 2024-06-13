@@ -24,15 +24,49 @@ void sleep_seconds(int seconds) {
     sleep(seconds);
 #endif
 }
-// lazy
+
+
 const Move all_possible_moves[] = {
-    {.name = "Tackle", .power = 80, .type = "Normal", .mp = 20 },
-    {.name = "Ember", .power = 110, .type = "Fire", .mp = 15 },
-    {.name = "Bubbles", .power = 110, .type = "Water", .mp = 15 },
-    {.name = "Leafs", .power = 110, .type = "Grass", .mp = 15 },
-    {.name = "Ice Spikes", .power = 110, .type = "Ice", .mp = 15 },
-    {.name = "Bite", .power = 100, .type = "Dark", .mp = 25 },
-    {.name = "Punch", .power = 100, .type = "Fighter", .mp = 25 },
+    {.name = "Tackle", .power = 40, .type = "Normal", .mp = 10 }, // 0
+    {.name = "Ember", .power = 55, .type = "Fire", .mp = 8 }, // 1
+    {.name = "Bubbles", .power = 55, .type = "Water", .mp = 8 }, // 2
+    {.name = "Leafs", .power = 55, .type = "Grass", .mp = 8 }, // 3
+    {.name = "Ice Spikes", .power = 55, .type = "Ice", .mp = 8 }, // 4
+    {.name = "Bite", .power = 50, .type = "Dark", .mp = 12 }, // 5
+    {.name = "Punch", .power = 50, .type = "Fighter", .mp = 12 }, // 6
+    {.name = "Slash", .power = 45, .type = "Normal", .mp = 9 }, // 7
+    {.name = "Flame Wheel", .power = 60, .type = "Fire", .mp = 6 }, // 8
+    {.name = "Aqua Jet", .power = 53, .type = "Water", .mp = 10 }, // 9
+    {.name = "Vine Whip", .power = 48, .type = "Grass", .mp = 11 }, // 10
+    {.name = "Frost Bite", .power = 58, .type = "Ice", .mp = 7 }, // 11
+    {.name = "Shadow Sneak", .power = 45, .type = "Dark", .mp = 11 }, // 12
+    {.name = "Karate Chop", .power = 55, .type = "Fighter", .mp = 8 }, // 13
+    {.name = "Headbutt", .power = 48, .type = "Normal", .mp = 11 }, // 14
+    {.name = "Fire Spin", .power = 65, .type = "Fire", .mp = 5 }, // 15
+    {.name = "Water Pulse", .power = 58, .type = "Water", .mp = 7 }, // 16
+    {.name = "Solar Beam", .power = 70, .type = "Grass", .mp = 4 }, // 17
+    {.name = "Ice Beam", .power = 63, .type = "Ice", .mp = 6 }, // 18
+    {.name = "Dark Pulse", .power = 55, .type = "Dark", .mp = 8 }, // 19
+    {.name = "Dynamic Punch", .power = 60, .type = "Fighter", .mp = 5 }, // 20
+    {.name = "Body Slam", .power = 45, .type = "Normal", .mp = 11 }, // 21
+    {.name = "Blaze Kick", .power = 58, .type = "Fire", .mp = 7 }, // 22
+    {.name = "Hydro Pump", .power = 65, .type = "Water", .mp = 5 }, // 23
+    {.name = "Leaf Blade", .power = 53, .type = "Grass", .mp = 9 }, // 24
+    {.name = "Blizzard", .power = 70, .type = "Ice", .mp = 4 }, // 25
+    {.name = "Night Slash", .power = 50, .type = "Dark", .mp = 8 }, // 26
+    {.name = "Mach Punch", .power = 48, .type = "Fighter", .mp = 10 }, // 27
+    {.name = "Hyper Beam", .power = 75, .type = "Normal", .mp = 3 }, // 28
+    {.name = "Inferno", .power = 68, .type = "Fire", .mp = 5 }, // 29
+    {.name = "Surf", .power = 60, .type = "Water", .mp = 6 }, // 30
+    {.name = "Giga Drain", .power = 58, .type = "Grass", .mp = 7 }, // 31
+    {.name = "Hailstorm", .power = 65, .type = "Ice", .mp = 5 }, // 32
+    {.name = "Shadow Claw", .power = 53, .type = "Dark", .mp = 9 }, // 33
+    {.name = "Focus Punch", .power = 68, .type = "Fighter", .mp = 5 }, // 34
+    {.name = "Quick Attack", .power = 35, .type = "Normal", .mp = 13 }, // 35
+    {.name = "Flamethrower", .power = 63, .type = "Fire", .mp = 6 }, // 36
+    {.name = "Bubble Beam", .power = 55, .type = "Water", .mp = 8 }, // 37
+    {.name = "Razor Leaf", .power = 48, .type = "Grass", .mp = 11 }, // 38
+    {.name = "Ice Fang", .power = 53, .type = "Ice", .mp = 9 }, // 39
 };
 
 void draw_world(GameManager gm) {
@@ -44,10 +78,10 @@ void draw_world(GameManager gm) {
     }
 }
 
-void draw_dialogue(GameManager gm) {
-    mvwprintw(gm.dialog, 3, 3, "WASD - MOVE | Q - QUIT");
-    box(gm.dialog, 0, 0);
-    wrefresh(gm.dialog);
+void draw_dialogue(WINDOW *dialogue, int y, int x, char *diag) {
+    mvwprintw(dialogue, y, x, diag);
+    box(dialogue, 0, 0);
+    wrefresh(dialogue);
 }
 
 bool is_walkable(Tile **map, int next_x, int next_y) {
@@ -87,8 +121,8 @@ Tile** parse_world(char **map, int map_cols, int map_rows) {
                     parsed[i][j] = npc_tile;
                     break;
                 }
-                case 't': {
-                    Tile trainer_tile = (Tile){.walkable = false, .type = "TRAINER", .x = j, .y = i, .sprite = 't'};
+                case 'T': {
+                    Tile trainer_tile = (Tile){.walkable = false, .type = "TRAINER", .x = j, .y = i, .sprite = 'T'};
                     parsed[i][j] = trainer_tile;
                     break;
                 }
@@ -99,7 +133,7 @@ Tile** parse_world(char **map, int map_cols, int map_rows) {
 }
 
 
-// In theory the game can only handle one event per time, so, its better to avoid having a battle aside a npc
+// In theory the game can only handle one event per time, so, its better to avoid having a battle aside a npc or a trainer
 Events check_for_event(int p_x, int p_y, GameManager gm) {
     Tile current_player_tile = gm.current_map[p_y][p_x];
     srand(time(NULL));
@@ -112,12 +146,33 @@ Events check_for_event(int p_x, int p_y, GameManager gm) {
     }
 
     // TODO: Refactor 
+    // Check for npc
     for(int i = -1; i < 2; i++) {
         for(int j = -1; j < 2; j++) {
             Tile check_for_npc = gm.current_map[p_y + i][p_x + j];
             if(check_for_npc.type == "NPC") {
                 return NPC_DIALOG;
             }
+        }
+    }
+
+
+    //Check for trainer
+    int directions[4][2] = { {1, 0}, {-1, 0}, {0, 1}, {0, -1} };
+    for(int i = 0; i < 4; i++) {
+        int x = p_x;
+        int y = p_y;
+        for(int dist = 0; dist < 2; dist++) {
+            x += directions[i][0];
+            y += directions[i][1];
+
+            Tile trainer_tile = gm.current_map[y][x];
+
+            if(x < 0 || x >= gm.c_map_rows || y < 0 || y >= gm.c_map_cols) break;
+
+            if(trainer_tile.type == "WALL") break;
+
+            if(trainer_tile.type == "TRAINER") return TRAINER_BATTLE;
         }
     }
     return NONE;
@@ -127,19 +182,26 @@ Events check_for_event(int p_x, int p_y, GameManager gm) {
 void handle_event(Events e, GameManager gm, Player *p) {
     switch(e) {
         case WILD_MON_BATTLE: {
+            sleep_seconds(1);
             battle(p, gm);
             draw_world(gm);
             break;
         }
 
         case NPC_DIALOG: {
-            mvwprintw(gm.dialog, 1, 1, "Hi, how it's going?");
-            wrefresh(gm.dialog); 
+            wclear(gm.dialog);
+            draw_dialogue(gm.dialog, 1, 3, "Hey, what's up?"); 
             break;
         }
 
         case NONE: {
-            draw_dialogue(gm);
+            wclear(gm.dialog);
+            break;
+        }
+        
+        case TRAINER_BATTLE: {
+            wclear(gm.dialog);
+            draw_dialogue(gm.dialog, 1, 3, "Battle");
             break;
         }
     }
