@@ -1,8 +1,7 @@
-#include <stdlib.h>
 #include <ncurses.h>
 #include "world.h"
 #include "player.h"
-
+#include <string.h>
 
 #define WIDTH 250
 #define HEIGHT 250
@@ -69,7 +68,7 @@ int main(void) {
         .dialog = dialogue,
     };
     allocate_mons(&gm);
-    p.mons[0] = gm.all_mons[2];
+    p.mons[0] = gm.all_mons[1];
 
     draw_dialogue(gm.dialog, 3, dialogue_w / 4, "wasd - MOVE | q - QUIT");
     draw_world(gm);

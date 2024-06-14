@@ -1,5 +1,6 @@
 #include "battle.h"
 #include "world.h"
+#include <ncurses.h>
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
@@ -41,9 +42,10 @@ char* health_bar(int max_health, int current_health) {
 }
 
 void draw_status(WINDOW *win, Mon *mon, int y, int x) {
-    mvwaddstr(win, y, x - (strlen(mon->name) + 2), mon->name);
-    mvwaddstr(win, y, x - (strlen(mon->name) + 4), int_to_string(mon->lvl));   
-    mvwaddstr(win, y + 1, x - (strlen(mon->name) + 4), health_bar(mon->max_hp, mon->current_hp));
+    mvwaddstr(win, y, x, int_to_string(mon->lvl));   
+    mvwaddstr(win, y, x + 2, mon->name);
+    mvwaddstr(win, y + 1, x, health_bar(mon->max_hp, mon->current_hp));
+    wrefresh(win);
 }
 
 void draw_options(WINDOW *win, int y, int x, char *text) {
@@ -80,7 +82,7 @@ bool check_if_defeated(Mon *mon) {
 
 
 int get_mon_move(Mon *mon) {
-    WINDOW *win_select = newwin(8, 15, 5, 8);
+    WINDOW *win_select = newwin(8, 17, 5, 8);
     WINDOW *win_options = newwin(8, 15, 5, 24);
 
     box(win_options, 0, 0);
@@ -92,8 +94,8 @@ int get_mon_move(Mon *mon) {
 
     // first draw the moves 
     for(int i = 0; i < mon->total_moves; i++) {
-        mvwaddstr(win_select, i + 2, 2, int_to_string(i + 1));
-        mvwaddstr(win_select, i + 2, 4, mon->moves[i].name);
+        mvwaddstr(win_select, i + 2, 3, int_to_string(i + 1));
+        mvwaddstr(win_select, i + 2, 5, mon->moves[i].name);
         wrefresh(win_select);
     }
 
@@ -112,10 +114,10 @@ int get_mon_move(Mon *mon) {
         wclear(win_options);
 
         // handle what current is selected
-        draw_options(win_options, 1, 1, mon->moves[current - 2].name);
-        draw_options(win_options, 2, 1, int_to_string(mon->moves[current - 2].power));
-        draw_options(win_options, 3, 1, int_to_string(mon->moves[current - 2].mp));
-        draw_options(win_options, 4, 1, mon->moves[current - 2].type);
+        draw_options(win_options, 2, 1, mon->moves[current - 2].name);
+        draw_options(win_options, 3, 1, int_to_string(mon->moves[current - 2].power));
+        draw_options(win_options, 4, 1, int_to_string(mon->moves[current - 2].mp));
+        draw_options(win_options, 5, 1, mon->moves[current - 2].type);
 
         mvwaddch(win_select, current, 1, '*');
         wrefresh(win_select);
@@ -164,12 +166,20 @@ void battle(Player *p, GameManager gm) {
     draw_options(options, 1, 1, random_mon.name);
     draw_options(options, 1, r_mon_name_len + 1, " Attacks you!");
 
+
+    WINDOW *mon_status = newwin(4, 14, p_mon_y - 1, p_mon_x + 10);
+    box(mon_status, 0, 0);  
+
+    WINDOW *r_mon_status = newwin(4, 14 , r_mon_y - 1, r_mon_x - 18);
+    box(r_mon_status, 0, 0);
+
     while(1) {
         draw_mon(battle_win, &p->mons[0], p_mon_y, p_mon_x);
-        draw_status(battle_win, &p->mons[0], p_mon_y, p_mon_y + 10);
+        draw_status(mon_status, &p->mons[0], 1, 1);
+      
 
         draw_mon(battle_win, &random_mon, r_mon_y, r_mon_x);
-        draw_status(battle_win, &random_mon, r_mon_y, r_mon_x);
+        draw_status(r_mon_status, &random_mon, 1, 1);
 
         if(check_if_defeated(&p->mons[0])) {
             // TODO: Instead of losing, let the player have a chance to change mon

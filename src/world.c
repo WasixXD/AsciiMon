@@ -8,7 +8,6 @@
 #include <string.h>
 
 #include "world.h"
-#include "player.h"
 #include "battle.h"
 
 #ifdef _WIN32
@@ -44,7 +43,7 @@ const Move all_possible_moves[] = {
     {.name = "Headbutt", .power = 48, .type = "Normal", .mp = 11 }, // 14
     {.name = "Fire Spin", .power = 65, .type = "Fire", .mp = 5 }, // 15
     {.name = "Water Pulse", .power = 58, .type = "Water", .mp = 7 }, // 16
-    {.name = "Solar Beam", .power = 70, .type = "Grass", .mp = 4 }, // 17
+    {.name = "Solar Beam", .power = 100, .type = "Grass", .mp = 4 }, // 17
     {.name = "Ice Beam", .power = 63, .type = "Ice", .mp = 6 }, // 18
     {.name = "Dark Pulse", .power = 55, .type = "Dark", .mp = 8 }, // 19
     {.name = "Dynamic Punch", .power = 60, .type = "Fighter", .mp = 5 }, // 20
@@ -212,7 +211,12 @@ int txt_filter(const struct dirent *entry) {
     return (ext && strcmp(ext, ".txt") == 0);
 }
 
-
+void remove_extension(char *filename) {
+    char *dot = strrchr(filename, '.');
+    if (dot && strcmp(dot, ".txt") == 0) {
+        *dot = '\0';
+    }
+}
 // This had added a high level of abstraction
 void allocate_mons(GameManager *gm) {
     const char *mon_folder_path = "./mons/";
@@ -238,6 +242,7 @@ void allocate_mons(GameManager *gm) {
         char filePath[50];
         // concat ./mons/ + name of the file
         snprintf(filePath, sizeof(filePath), "%s%s", mon_folder_path, namelist[n]->d_name);
+        remove_extension(namelist[n]->d_name);
         new_mon.name = namelist[n]->d_name;
         new_mon.lvl = 1;
         // open file
