@@ -8,6 +8,11 @@
 #define MAX_MOVES 4
 #define MAX_MONS 6
 
+#define GROUND 0
+#define WALL 1
+#define GRASS 2
+#define NPC 3
+#define TRAINER 4
 
 void sleep_seconds(int seconds);
 
@@ -23,6 +28,7 @@ typedef struct {
     int max_hp;
     int current_hp;
     int lvl;
+    int xp_points;
     int total_moves;
     char *name;
     char *type;
@@ -31,11 +37,24 @@ typedef struct {
 } Mon;
 
 typedef struct {
+    char *name;
+    char *desc;
+    int quantity;
+} Item;
+
+typedef struct {
     int x;
     int y;
     char body;
     Mon mons[MAX_MONS];
+    Item items[2];
 } Player;
+
+typedef struct {
+    char *name,
+    Mon mons[MAX_MONS];
+    int n_mons;
+} Trainer;
 
 typedef enum  {
     WILD_MON_BATTLE,
@@ -51,6 +70,7 @@ typedef struct {
     char sprite;
     int x;
     int y;
+    int pair;
 } Tile;
 
 
@@ -68,6 +88,8 @@ void draw_world(GameManager gm);
 
 void draw_dialogue(WINDOW *dialogue, int y, int x, char *diag);
 
+void draw_items(Player *p);
+
 bool is_walkable(Tile **map, int nextX, int nextY);
 
 Tile** parse_world(char **map, int map_cols, int map_rows);
@@ -77,5 +99,7 @@ Events check_for_event(int p_x, int p_y, GameManager gm);
 void allocate_mons(GameManager *gm);
 
 void handle_event(Events e, GameManager gm, Player *p);
+
+char* int_to_string(int num);
 
 #endif

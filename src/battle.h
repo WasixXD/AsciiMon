@@ -7,5 +7,8 @@
 
 void battle(Player *p, GameManager gm);
 
+int effectiveness(char *move_type, char *mon_type);
+
+
 
 #endif

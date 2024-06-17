@@ -3,40 +3,33 @@
 #include "player.h"
 #include <string.h>
 
-#define WIDTH 250
-#define HEIGHT 250
-
-
 int main(void) {
     // if(!has_colors()) {
     //     printf("Your terminal doesnt support colors");
     //     return 0;
     // }
     char *map[] = {
-        // "####################################################################################################",
-        "####################",
-        "#        ###########",
-        "####### ############",
-        "#######          ###",
-        "######  #####      #",
-        "#####    #####  n  #",
-        "###        ####    #",
-        "##   ;;;;;   #######",
-        "##   ;;;;;   #######",
-        "###        #########",
-        "####      ##########",
-        "####    ############",
-        "##   T     #########",
-        "##            ######",
-        "####   #############",
-        "####################",
-        // "####################",
-        // "####################",
-        // "####################",
-        // "####################",
-        // "####################",
-        // "####################",
-        // "####################",
+        "###########################################################################",
+        "#          ################################################################",
+        "#          ################################################################",
+        "#          #T##############################################################",
+        "#                   #######################################################",
+        "#####  n     ;;;;;   ######################################################",
+        "#####        ;;;;;   ######################################################",
+        "########     ;;;;;   ######################################################",
+        "########            #######################################################",
+        "###########T###############################################################",
+        "###########################################################################",
+        "###########################################################################",
+        "###########################################################################",
+        "###########################################################################",
+        "###########################################################################",
+        "###########################################################################",
+        "###########################################################################",
+        "###########################################################################",
+        "###########################################################################",
+        "###########################################################################",
+        
     };
     int map_rows = sizeof(map) / sizeof(map[0]);
     int map_cols = strlen(map[0]);
@@ -55,6 +48,12 @@ int main(void) {
     WINDOW *dialogue = newwin(dialogue_h, dialogue_w, map_rows + 2, 0);
     
 
+    start_color();
+    init_pair(GROUND, COLOR_BLACK, COLOR_BLACK);
+    init_pair(GRASS, COLOR_WHITE, COLOR_GREEN);
+    init_pair(WALL, COLOR_WHITE, COLOR_BLACK);
+    init_pair(NPC, COLOR_YELLOW, COLOR_BLACK);
+    init_pair(TRAINER, COLOR_RED, COLOR_BLACK);
 
     Player p = { .x = 1, .y = 1, .body = player_body };
 
@@ -70,9 +69,13 @@ int main(void) {
     allocate_mons(&gm);
     p.mons[0] = gm.all_mons[1];
 
-    draw_dialogue(gm.dialog, 3, dialogue_w / 4, "wasd - MOVE | q - QUIT");
+    p.items[0] = (Item){ .name = "Potion", .desc = "Restore X HP \n from your mon", .quantity = 1 };
+    p.items[1] = (Item){ .name = "MonBall",.desc = "Used to capture \n Mons", .quantity = 20};
+
+    draw_dialogue(gm.dialog, 3, dialogue_w / 5, "wasd - MOVE | q - QUIT | e - ITENS");
     draw_world(gm);
     draw_player(gm.main_w, &p);
+
     //gameloop
     while(1) {
 
@@ -89,9 +92,56 @@ int main(void) {
             break;
         } 
 
-        // TODO: slow?
+        if(input == 'e') {
+            WINDOW *items = newwin(map_rows, 20, 1, p.x);
+            box(items, 0, 0);
+
+            WINDOW *items_options = newwin(7, 20, 10, p.x);
+            box(items_options, 0, 0);
+
+
+            draw_dialogue(gm.dialog, 1, 1, "w - MOVE UP | s - MOVE DOWN | e - EXIT");
+
+            for(int i = 0; i < 2; i++) {
+                mvwaddstr(items, i + 1, 2, "-");
+                mvwaddstr(items, i + 1, 4, p.items[i].name);
+                mvwaddstr(items, i + 1, 15, int_to_string(p.items[i].quantity));
+            }
+
+            wrefresh(items);
+            wrefresh(items_options);
+
+            int current = 1;
+            int opt;
+            do {
+                opt = wgetch(items);
+                mvwaddch(items, current, 1, ' ');
+
+                wclear(items_options);
+                if(opt == 'w' && current > 1) {
+                    current--;
+                } else if(opt == 's' && current <= 1) {
+                    current++;
+                }
+
+                mvwaddch(items, current, 1, '*');
+                draw_dialogue(items_options, 1, 1, p.items[current - 1].name);
+                draw_dialogue(items_options, 2, 1, p.items[current - 1].desc);
+                
+                
+                
+            } while (opt != 'e');
+            
+            wclear(items);
+            wrefresh(items);
+            delwin(items);
+            wclear(items_options);
+            wrefresh(items_options);
+            delwin(items_options);
+        }
+
         draw_world(gm);
-        draw_dialogue(gm.dialog, 3, dialogue_w / 4, "wasd - MOVE | q - QUIT");
+        draw_dialogue(gm.dialog, 3, dialogue_w / 5, "wasd - MOVE | q - QUIT | e - ITENS");
         draw_player(gm.main_w, &p);
 
     }

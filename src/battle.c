@@ -13,17 +13,7 @@ void draw_mon(WINDOW *win, Mon *mon, int x, int y) {
     }
 }
 
-char* int_to_string(int num) {
-    
-    int length = snprintf(NULL, 0, "%d", num);
-    char *str = (char *)malloc(length + 1);
-    if (str == NULL) {
-        fprintf(stderr, "Erro ao alocar memória\n");
-        exit(1);
-    }
-    sprintf(str, "%d", num);
-    return str;
-}
+
 
 char* health_bar(int max_health, int current_health) {
     int bar_length = 12;
@@ -43,17 +33,11 @@ char* health_bar(int max_health, int current_health) {
 
 void draw_status(WINDOW *win, Mon *mon, int y, int x) {
     mvwaddstr(win, y, x, int_to_string(mon->lvl));   
-    mvwaddstr(win, y, x + 2, mon->name);
+    mvwaddstr(win, y, x + 2 + strlen(int_to_string(mon->lvl)), mon->name);
     mvwaddstr(win, y + 1, x, health_bar(mon->max_hp, mon->current_hp));
     wrefresh(win);
 }
 
-void draw_options(WINDOW *win, int y, int x, char *text) {
-    box(win, 0, 0);
-    mvwaddstr(win, y, x, text);
-    wrefresh(win);
-
-}
 
 void clear_input_buffer(WINDOW *win) {
     nodelay(win, TRUE);
@@ -64,10 +48,9 @@ void clear_input_buffer(WINDOW *win) {
 int calc_dmg(int nivel, int poder, int mod) {
     float rand_factor = (rand() % 16 + 85) / 100.0;
     
-    int dmg = (nivel * poder * mod / 10) * rand_factor;
+    int dmg = (((nivel * poder) / 10) / (rand_factor * nivel)) * mod;
     return dmg;
 }
-
 
 void apply_dmg(Mon *mon, int dmg) {
     if(mon->current_hp > 0) {
@@ -75,15 +58,50 @@ void apply_dmg(Mon *mon, int dmg) {
     }
 }
 
-
 bool check_if_defeated(Mon *mon) {
+
     return mon->current_hp <= 0;
 }
 
+int effectiveness(char *move_type, char *mon_type) {
+    // TODO: Refactor
+    if(strcmp(move_type, "Psychic") == 0 && strcmp(mon_type, "Dark") == 0) {
+        return 2;
+    } else if(strcmp(move_type, "Fire") == 0 && strcmp(mon_type, "Grass") == 0) {
+        return 2;
+    } else if(strcmp(move_type, "Water") == 0 && strcmp(mon_type, "Fire") == 0) {
+        return 2;
+    } else if(strcmp(move_type, "Grass") == 0 && strcmp(mon_type, "Water") == 0) {
+        return 2;
+    } else if(strcmp(move_type, "Ice") == 0 && strcmp(mon_type, "Fighter") == 0) {
+        return 2;
+    } else if(strcmp(move_type, "Dark") == 0 && strcmp(mon_type, "Psychic") == 0) {
+        return 2;
+    } else if(strcmp(move_type, "Fighter") == 0 && strcmp(mon_type, "Ice") == 0) {
+        return 2;
+    }
+
+    return 1;
+}
+
+
+bool lvl_up(Mon *mon) {
+    //lvl up!
+    if(mon->xp_points > mon->lvl) {
+        int hp_lvl_factor = 7;
+        mon->lvl++;
+        mon->xp_points = 0;
+        mon->max_hp += hp_lvl_factor;
+        mon->current_hp += hp_lvl_factor;
+        return true;
+    }
+
+    return false;
+}
 
 int get_mon_move(Mon *mon) {
-    WINDOW *win_select = newwin(8, 17, 5, 8);
-    WINDOW *win_options = newwin(8, 15, 5, 24);
+    WINDOW *win_select = newwin(8, 20, 5, 8);
+    WINDOW *win_options = newwin(8, 15, 5, 30);
 
     box(win_options, 0, 0);
     box(win_select, 0, 0);
@@ -114,10 +132,10 @@ int get_mon_move(Mon *mon) {
         wclear(win_options);
 
         // handle what current is selected
-        draw_options(win_options, 2, 1, mon->moves[current - 2].name);
-        draw_options(win_options, 3, 1, int_to_string(mon->moves[current - 2].power));
-        draw_options(win_options, 4, 1, int_to_string(mon->moves[current - 2].mp));
-        draw_options(win_options, 5, 1, mon->moves[current - 2].type);
+        draw_dialogue(win_options, 2, 1, mon->moves[current - 2].name);
+        draw_dialogue(win_options, 3, 1, int_to_string(mon->moves[current - 2].power));
+        draw_dialogue(win_options, 4, 1, int_to_string(mon->moves[current - 2].mp));
+        draw_dialogue(win_options, 5, 1, mon->moves[current - 2].type);
 
         mvwaddch(win_select, current, 1, '*');
         wrefresh(win_select);
@@ -136,6 +154,10 @@ int get_mon_move(Mon *mon) {
 }
 
 void battle(Player *p, GameManager gm) {
+    wclear(gm.main_w);
+    wclear(gm.dialog);
+    wrefresh(gm.main_w);
+    wrefresh(gm.dialog);
 
     int turn = 0;
 
@@ -149,6 +171,9 @@ void battle(Player *p, GameManager gm) {
  
     int random_mon_index = rand() % gm.q_mons;
     Mon random_mon = gm.all_mons[random_mon_index];  
+    random_mon.lvl = rand() % p->mons[0].lvl + 1;
+    random_mon.max_hp = random_mon.max_hp + (5 * random_mon.lvl);
+    random_mon.current_hp = random_mon.max_hp;
 
     int sprite_padding_w = 10;
     int sprite_padding_h =  5;
@@ -163,8 +188,8 @@ void battle(Player *p, GameManager gm) {
 
     int input;
     wclear(options);
-    draw_options(options, 1, 1, random_mon.name);
-    draw_options(options, 1, r_mon_name_len + 1, " Attacks you!");
+    draw_dialogue(options, 1, 1, random_mon.name);
+    draw_dialogue(options, 1, r_mon_name_len + 1, " is angry and attacks you!");
 
 
     WINDOW *mon_status = newwin(4, 14, p_mon_y - 1, p_mon_x + 10);
@@ -184,7 +209,7 @@ void battle(Player *p, GameManager gm) {
         if(check_if_defeated(&p->mons[0])) {
             // TODO: Instead of losing, let the player have a chance to change mon
             wclear(options);
-            draw_options(options, 1, 1, "Your mon was defeated");
+            draw_dialogue(options, 1, 1, "Your mon was defeated");
 
             sleep_seconds(2);
             break;
@@ -195,31 +220,44 @@ void battle(Player *p, GameManager gm) {
         if(turn == 0) {
             sleep_seconds(2);
             wclear(options);
-            draw_options(options, 1, 1, "q - Attack | w - Mons | e - Itens | r - Run");
+            draw_dialogue(options, 1, 1, "q - Attack | w - Mons | e - Itens | r - Run");
 
             do {
                 input = wgetch(battle_win);
             } while (input != 'q' && input != 'w' && input != 'e' && input != 'r');
 
             if(input == 'r') {
-                break;
+                float chance_to_run = (float)rand() / RAND_MAX;
+                if(chance_to_run >= 0.2) break;
+
+                wclear(options);
+                draw_dialogue(options, 1, 1, "You tried to run, but failed");
+                
             }
             if(input == 'q') {
                 wclear(options);
-                draw_options(options, 1, 1, "w - MOVE UP | s - MOVE DOWN | f - CHOOSE");
+                draw_dialogue(options, 1, 1, "w - MOVE UP | s - MOVE DOWN | f - CHOOSE");
                 int move_index = get_mon_move(&p->mons[0]);
                 Move p_move = p->mons[0].moves[move_index];
                 wclear(options);
 
                 if(p_move.mp > 0) {
-                    int dano = calc_dmg(p->mons[0].lvl, p_move.power, 1);
+                    int mod = effectiveness(p_move.type, random_mon.type);
+                    int dano = calc_dmg(p->mons[0].lvl, p_move.power, mod);
                     apply_dmg(&random_mon, dano); 
-                    draw_options(options, 1, 1, "used ");
-                    draw_options(options, 1, 6, p_move.name);
+                    draw_dialogue(options, 1, 1, "used ");
+                    draw_dialogue(options, 1, 6, p_move.name);
+                    sleep_seconds(1);
+                    // was effective
+                    if(mod == 2) {
+                        wclear(options);
+                        draw_dialogue(options, 1, 1, "And was super effective");
+                        sleep_seconds(1);
+                    }
                     p->mons[0].moves[move_index].mp--;
 
                 } else {
-                    draw_options(options, 1, 1, "You dont have MP to use this move");
+                    draw_dialogue(options, 1, 1, "You dont have MP to use this move");
                 }
 
 
@@ -229,9 +267,22 @@ void battle(Player *p, GameManager gm) {
 
             if(check_if_defeated(&random_mon)) {
                 wclear(options);
-                draw_options(options, 1, 1, random_mon.name);
-                draw_options(options, 1, r_mon_name_len + 1, " was defeated");
+                draw_dialogue(options, 1, 1, random_mon.name);
+                draw_dialogue(options, 1, r_mon_name_len + 1, " was defeated");
                 sleep_seconds(2);
+                int total_xp = rand() % random_mon.lvl + 1;
+                p->mons[0].xp_points += total_xp;
+
+                wclear(options);
+                draw_dialogue(options, 1, 1, int_to_string(total_xp));
+                draw_dialogue(options, 1, 3, "xp was gained");
+                sleep_seconds(2);
+
+                if(lvl_up(&p->mons[0])) {
+                   wclear(options);
+                   draw_dialogue(options, 1, 1, "you leveled up"); 
+                   sleep_seconds(1);
+                }
                 break;
             }
 
@@ -245,12 +296,11 @@ void battle(Player *p, GameManager gm) {
 
             if(random_move.mp > 0) {
                 random_mon.moves[random_move_index].mp--;
-                draw_options(options, 1, 1, random_mon.name);
-                draw_options(options, 1, r_mon_name_len + 1, " used ");
-                draw_options(options, 1, r_mon_name_len + 7, random_move.name);
+                draw_dialogue(options, 1, 1, random_mon.name);
+                draw_dialogue(options, 1, r_mon_name_len + 1, " used ");
+                draw_dialogue(options, 1, r_mon_name_len + 7, random_move.name);
 
-                // TODO: Find a way to calculate how effective was the dmg
-                int mod = 1;
+                int mod = effectiveness(random_move.type, &p->mons[0].type);
                 int dano = calc_dmg(random_mon.lvl, random_move.power, mod);
 
                 apply_dmg(&p->mons[0], dano);

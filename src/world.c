@@ -68,11 +68,25 @@ const Move all_possible_moves[] = {
     {.name = "Ice Fang", .power = 53, .type = "Ice", .mp = 9 }, // 39
 };
 
+char* int_to_string(int num) {
+    
+    int length = snprintf(NULL, 0, "%d", num);
+    char *str = (char *)malloc(length + 1);
+    if (str == NULL) {
+        fprintf(stderr, "Erro ao alocar memória\n");
+        exit(1);
+    }
+    sprintf(str, "%d", num);
+    return str;
+}
+
 void draw_world(GameManager gm) {
     for(int i = 0; i < gm.c_map_rows; i++) {
         for(int j = 0; j < gm.c_map_cols; j++) {
+            wattron(gm.main_w, COLOR_PAIR(gm.current_map[i][j].pair));
             mvwaddch(gm.main_w, i, j, gm.current_map[i][j].sprite);
             wrefresh(gm.main_w);
+            wattroff(gm.main_w, COLOR_PAIR(gm.current_map[i][j].pair));
         }
     }
 }
@@ -100,28 +114,28 @@ Tile** parse_world(char **map, int map_cols, int map_rows) {
 
             switch(current) {
                 case '#': {
-                    Tile wall_tile = (Tile){.walkable = false, .type = "WALL", .x = j, .y = i, .sprite = '#'};
+                    Tile wall_tile = (Tile){.walkable = false, .type = "WALL", .x = j, .y = i, .sprite = '#', .pair = WALL};
                     parsed[i][j] = wall_tile;
                     break;
 
                 }
                 case ' ': {
-                    Tile ground_tile = (Tile){.walkable = true, .type = "GROUND", .x = j, .y = i, .sprite = ' '};
+                    Tile ground_tile = (Tile){.walkable = true, .type = "GROUND", .x = j, .y = i, .sprite = ' ', .pair = GROUND};
                     parsed[i][j] = ground_tile;
                     break;
                 }
                 case ';': {
-                    Tile grass_tile = (Tile){.walkable = true, .type = "GRASS", .x = j, .y = i, .sprite = 'w'};
+                    Tile grass_tile = (Tile){.walkable = true, .type = "GRASS", .x = j, .y = i, .sprite = 'w', .pair = GRASS};
                     parsed[i][j] = grass_tile;
                     break;
                 }
                 case 'n': {
-                    Tile npc_tile = (Tile){.walkable = false, .type = "NPC", .x = j, .y = i, .sprite = 'n'};
+                    Tile npc_tile = (Tile){.walkable = false, .type = "NPC", .x = j, .y = i, .sprite = 'n', .pair = NPC};
                     parsed[i][j] = npc_tile;
                     break;
                 }
                 case 'T': {
-                    Tile trainer_tile = (Tile){.walkable = false, .type = "TRAINER", .x = j, .y = i, .sprite = 'T'};
+                    Tile trainer_tile = (Tile){.walkable = false, .type = "TRAINER", .x = j, .y = i, .sprite = 'T', .pair = TRAINER};
                     parsed[i][j] = trainer_tile;
                     break;
                 }
@@ -144,7 +158,6 @@ Events check_for_event(int p_x, int p_y, GameManager gm) {
         }
     }
 
-    // TODO: Refactor 
     // Check for npc
     for(int i = -1; i < 2; i++) {
         for(int j = -1; j < 2; j++) {
@@ -161,7 +174,7 @@ Events check_for_event(int p_x, int p_y, GameManager gm) {
     for(int i = 0; i < 4; i++) {
         int x = p_x;
         int y = p_y;
-        for(int dist = 0; dist < 2; dist++) {
+        for(int dist = 0; dist < 3; dist++) {
             x += directions[i][0];
             y += directions[i][1];
 
@@ -171,7 +184,9 @@ Events check_for_event(int p_x, int p_y, GameManager gm) {
 
             if(trainer_tile.type == "WALL") break;
 
-            if(trainer_tile.type == "TRAINER") return TRAINER_BATTLE;
+            if(trainer_tile.type == "TRAINER") {
+                return TRAINER_BATTLE;
+            }
         }
     }
     return NONE;
@@ -200,7 +215,9 @@ void handle_event(Events e, GameManager gm, Player *p) {
         
         case TRAINER_BATTLE: {
             wclear(gm.dialog);
-            draw_dialogue(gm.dialog, 1, 3, "Battle");
+            draw_dialogue(gm.dialog, 1, 3, "Hey, let's battle");
+
+            int t_n_mons = (rand() % 3) +  1;
             break;
         }
     }
@@ -245,6 +262,7 @@ void allocate_mons(GameManager *gm) {
         remove_extension(namelist[n]->d_name);
         new_mon.name = namelist[n]->d_name;
         new_mon.lvl = 1;
+        new_mon.xp_points = 1;
         // open file
         FILE *fptr = fopen(filePath, "r");   
         if(fptr != NULL) {
@@ -293,3 +311,4 @@ void allocate_mons(GameManager *gm) {
     gm->q_mons = mon_i;
     free(namelist);
 }
+

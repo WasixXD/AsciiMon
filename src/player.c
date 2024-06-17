@@ -17,7 +17,7 @@ void handle_input(int input, Player *p, Tile **map) {
         p->x++;
     } else if(input == 'a' && is_walkable(map, p->x - 1, p->y)) {
         p->x--;
-    }
+    } 
 }
 
 
