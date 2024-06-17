@@ -51,7 +51,7 @@ typedef struct {
 } Player;
 
 typedef struct {
-    char *name,
+    char *name;
     Mon mons[MAX_MONS];
     int n_mons;
 } Trainer;

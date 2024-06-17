@@ -218,6 +218,18 @@ void handle_event(Events e, GameManager gm, Player *p) {
             draw_dialogue(gm.dialog, 1, 3, "Hey, let's battle");
 
             int t_n_mons = (rand() % 3) +  1;
+            Trainer new_trainer = (Trainer){.name = "Trainer", .n_mons = t_n_mons};
+
+            for(int i = 0; i < t_n_mons; i++) {
+                int r_index = rand() % gm.q_mons;
+                Mon some_mon = gm.all_mons[r_index];
+                some_mon.lvl = rand() % p->mons[0].lvl + 2;
+                some_mon.max_hp = some_mon.max_hp + (5 * some_mon.lvl);
+                some_mon.current_hp = some_mon.max_hp;
+                new_trainer.mons[i] = some_mon;
+            }
+
+            battle_trainer(p, gm, &new_trainer);
             break;
         }
     }
