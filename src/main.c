@@ -67,12 +67,17 @@ int main(void) {
         .dialog = dialogue,
     };
     allocate_mons(&gm);
-    p.mons[0] = gm.all_mons[1];
+    p.mons[0] = gm.all_mons[1]; 
+    p.mons[1] = gm.all_mons[0];
+    p.mons[2] = gm.all_mons[2];
+    p.mons[3] = gm.all_mons[0];
+
+    p.n_of_mons += 2;
 
     p.items[0] = (Item){ .name = "Potion", .desc = "Restore X HP \n from your mon", .quantity = 1 };
     p.items[1] = (Item){ .name = "MonBall",.desc = "Used to capture \n Mons", .quantity = 20};
 
-    draw_dialogue(gm.dialog, 3, dialogue_w / 5, "wasd - MOVE | q - QUIT | e - ITENS");
+    draw_dialogue(gm.dialog, 3, 1, "wasd - MOVE | q - QUIT | e - ITENS | f - MONS");
     draw_world(gm);
     draw_player(gm.main_w, &p);
 
@@ -99,49 +104,25 @@ int main(void) {
             WINDOW *items_options = newwin(7, 20, 10, p.x);
             box(items_options, 0, 0);
 
-
             draw_dialogue(gm.dialog, 1, 1, "w - MOVE UP | s - MOVE DOWN | e - EXIT");
 
-            for(int i = 0; i < 2; i++) {
-                mvwaddstr(items, i + 1, 2, "-");
-                mvwaddstr(items, i + 1, 4, p.items[i].name);
-                mvwaddstr(items, i + 1, 15, int_to_string(p.items[i].quantity));
-            }
+            int _ = get_some_item(&p, items, items_options);
 
-            wrefresh(items);
-            wrefresh(items_options);
+            wclear(gm.dialog);
+       }
 
-            int current = 1;
-            int opt;
-            do {
-                opt = wgetch(items);
-                mvwaddch(items, current, 1, ' ');
+        if(input == 'f') {
+              
+           
 
-                wclear(items_options);
-                if(opt == 'w' && current > 1) {
-                    current--;
-                } else if(opt == 's' && current <= 1) {
-                    current++;
-                }
 
-                mvwaddch(items, current, 1, '*');
-                draw_dialogue(items_options, 1, 1, p.items[current - 1].name);
-                draw_dialogue(items_options, 2, 1, p.items[current - 1].desc);
-                
-                
-                
-            } while (opt != 'e');
-            
-            wclear(items);
-            wrefresh(items);
-            delwin(items);
-            wclear(items_options);
-            wrefresh(items_options);
-            delwin(items_options);
+            draw_dialogue(gm.dialog, 1, 1, "w - MOVE UP | s - MOVE DOWN | f - EXIT |\n space - CHANGE");
+            int _ = choose_mon(&p, p.x);
+
+            wclear(gm.dialog);
         }
-
         draw_world(gm);
-        draw_dialogue(gm.dialog, 3, dialogue_w / 5, "wasd - MOVE | q - QUIT | e - ITENS");
+        draw_dialogue(gm.dialog, 3, 1,  "wasd - MOVE | q - QUIT | e - ITENS | f - MONS");
         draw_player(gm.main_w, &p);
 
     }

@@ -229,7 +229,7 @@ void handle_event(Events e, GameManager gm, Player *p) {
                 new_trainer.mons[i] = some_mon;
             }
 
-            battle_trainer(p, gm, &new_trainer);
+            // battle_trainer(p, gm, &new_trainer);
             break;
         }
     }
@@ -324,3 +324,134 @@ void allocate_mons(GameManager *gm) {
     free(namelist);
 }
 
+int get_some_item(Player *p, WINDOW *items, WINDOW *items_options) {
+
+    for(int i = 0; i < 2; i++) {
+        mvwaddstr(items, i + 1, 2, "-");
+        mvwaddstr(items, i + 1, 4, p->items[i].name);
+        mvwaddstr(items, i + 1, 15, int_to_string(p->items[i].quantity));
+    }
+
+    wrefresh(items);
+    wrefresh(items_options);
+
+    int current = 1;
+    int opt;
+    do {
+        opt = wgetch(items);
+        mvwaddch(items, current, 1, ' ');
+
+        wclear(items_options);
+        if(opt == 'w' && current > 1) {
+            current--;
+        } else if(opt == 's' && current <= 1) {
+            current++;
+        }
+
+        mvwaddch(items, current, 1, '*');
+        draw_dialogue(items_options, 1, 1, p->items[current - 1].name);
+        draw_dialogue(items_options, 2, 1, p->items[current - 1].desc);
+        
+        
+        
+    } while (opt != 'e');
+    
+    wclear(items);
+    wrefresh(items);
+    delwin(items);
+
+    wclear(items_options);
+    wrefresh(items_options);
+    delwin(items_options);
+
+    return current - 1;
+}
+
+
+void swap_mon_position(Player *p, int old, int new) {
+    Mon aux = p->mons[old];
+
+    p->mons[old] = p->mons[new];
+    p->mons[new] = aux;
+}
+
+int choose_mon(Player *p, int x_coordinate) {
+    int current = 0;
+    WINDOW *mons = newwin(20, 30, 1, x_coordinate);
+    box(mons, 0, 0);
+
+    bool first = false;
+    bool second = false;
+    int first_index;
+    int second_index;
+
+    int input;
+
+    wrefresh(mons);
+
+    int mon_box_h = 5;
+    int mon_box_w = 15;
+    do {
+
+        if(input == 'w' && current > 0) {
+            current--;
+        } else if(input == 's' && current < p->n_of_mons - 1) {
+            current++;
+        }
+
+
+        if(input == ' ' && !first) {
+            first = true;
+            first_index = current;
+        } else if(input == ' ' && !second) {
+            second = true;
+            second_index = current;
+        }
+
+        if(first && second) {
+            swap_mon_position(p, first_index, second_index);
+            first = false;
+            second = false;
+        }
+
+        for(int i = 0; i < p->n_of_mons; i++) {
+
+            int y = (i / 2) * mon_box_h + 2;
+            int x = i % 2 == 0? 0 : mon_box_w;
+            y += i % 2 == 0? 0 : 1;
+
+            WINDOW *mon_box = newwin(mon_box_h, mon_box_w, y, x + x_coordinate);
+
+            char *health_display = int_to_string(p->mons[i].current_hp);
+            strncat(health_display, "/", 4);
+            strncat(health_display, int_to_string(p->mons[i].max_hp), 7);
+
+            mvwaddstr(mon_box, 1, 1, p->mons[i].name);
+            mvwaddstr(mon_box, 1, strlen(&p->mons[i].name) + 2, int_to_string(p->mons[i].lvl));
+            mvwaddstr(mon_box, 2, 1, health_display);
+            mvwaddstr(mon_box, 3, 1, p->mons[i].type);
+
+            if(i == current) {
+                wattron(mon_box, COLOR_PAIR(TRAINER));
+                box(mon_box, 0, 0);
+                wattroff(mon_box, COLOR_PAIR(TRAINER));
+            } else if(first && i == first_index) {
+                wattron(mon_box, COLOR_PAIR(NPC));
+                box(mon_box, 0, 0);
+                wattroff(mon_box, COLOR_PAIR(NPC));
+            } else {
+                box(mon_box, 0, 0);
+            }
+
+            wrefresh(mon_box);
+        }
+
+        input = wgetch(mons);
+    } while(input != 'f');
+
+    wclear(mons);
+    wrefresh(mons);
+    delwin(mons);
+    return 0;
+
+}
