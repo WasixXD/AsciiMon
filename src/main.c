@@ -12,7 +12,7 @@ int main(void) {
         "###########################################################################",
         "#          ################################################################",
         "#          ################################################################",
-        "#          #T##############################################################",
+        "#          ################################################################",
         "#                   #######################################################",
         "#####  n     ;;;;;   ######################################################",
         "#####        ;;;;;   ######################################################",
@@ -68,14 +68,11 @@ int main(void) {
     };
     allocate_mons(&gm);
     p.mons[0] = gm.all_mons[1]; 
-    p.mons[1] = gm.all_mons[0];
-    p.mons[2] = gm.all_mons[2];
-    p.mons[3] = gm.all_mons[0];
 
-    p.n_of_mons += 2;
+    p.n_of_mons += 1;
 
-    p.items[0] = (Item){ .name = "Potion", .desc = "Restore X HP \n from your mon", .quantity = 1 };
-    p.items[1] = (Item){ .name = "MonBall",.desc = "Used to capture \n Mons", .quantity = 20};
+    p.items[0] = (Item){ .name = "Potion", .desc = "Restore 10 HP \n from your mon", .quantity = 10 };
+    p.items[1] = (Item){ .name = "MonBall",.desc = "Used to capture \n Mons", .quantity = 10};
 
     draw_dialogue(gm.dialog, 3, 1, "wasd - MOVE | q - QUIT | e - ITENS | f - MONS");
     draw_world(gm);
@@ -98,24 +95,17 @@ int main(void) {
         } 
 
         if(input == 'e') {
-            WINDOW *items = newwin(map_rows, 20, 1, p.x);
-            box(items, 0, 0);
-
-            WINDOW *items_options = newwin(7, 20, 10, p.x);
-            box(items_options, 0, 0);
+           
 
             draw_dialogue(gm.dialog, 1, 1, "w - MOVE UP | s - MOVE DOWN | e - EXIT");
 
-            int _ = get_some_item(&p, items, items_options);
+            int _ = get_some_item(&p, p.x);
 
             wclear(gm.dialog);
        }
 
         if(input == 'f') {
               
-           
-
-
             draw_dialogue(gm.dialog, 1, 1, "w - MOVE UP | s - MOVE DOWN | f - EXIT |\n space - CHANGE");
             int _ = choose_mon(&p, p.x);
 

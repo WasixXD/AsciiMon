@@ -324,7 +324,12 @@ void allocate_mons(GameManager *gm) {
     free(namelist);
 }
 
-int get_some_item(Player *p, WINDOW *items, WINDOW *items_options) {
+int get_some_item(Player *p, int x_coordinate) {
+    WINDOW *items = newwin(15, 20, 1, x_coordinate);
+    box(items, 0, 0);
+
+    WINDOW *items_options = newwin(7, 20, 10, x_coordinate);
+    box(items_options, 0, 0);
 
     for(int i = 0; i < 2; i++) {
         mvwaddstr(items, i + 1, 2, "-");

@@ -1,5 +1,6 @@
 #include "battle.h"
 #include "world.h"
+#include "player.h"
 #include <ncurses.h>
 #include <stdlib.h>
 #include <time.h>
@@ -65,7 +66,6 @@ bool check_if_defeated(Mon *mon) {
 }
 
 int effectiveness(char *move_type, char *mon_type) {
-    // TODO: Refactor
     if(strcmp(move_type, "Psychic") == 0 && strcmp(mon_type, "Dark") == 0) {
         return 2;
     } else if(strcmp(move_type, "Fire") == 0 && strcmp(mon_type, "Grass") == 0) {
@@ -289,6 +289,50 @@ void battle(Player *p, GameManager gm) {
                 sleep_seconds(1);
             }
 
+            if(input == 'e') {
+                int item_index = get_some_item(p, battle_w_w / 2);
+                Item current_item = p->items[item_index];
+
+                //Only doing this way because i will handle only two itens
+                if(strcmp(current_item.name, "Potion") == 0 && current_item.quantity > 0) {
+                    p->mons[0].current_hp += 10; 
+                    p->mons[0].current_hp = p->mons[0].current_hp > p->mons[0].max_hp? p->mons[0].max_hp : p->mons[0].current_hp;
+                } else if(strcmp(current_item.name, "MonBall") == 0 && current_item.quantity > 0) {
+                    wclear(options);
+                    draw_dialogue(options, 1, 1, "You threw a MonBall");
+                    sleep_seconds(1);
+
+                    // actual algorithm to calc chance to capture
+                    int ball_num = 12;
+                    int n = rand() % 256;
+                    float f = (random_mon.max_hp * 255 * 4) / (random_mon.current_hp * ball_num);
+                    wclear(options);
+
+                    for(int i = 0; i < 3; i++) {
+                        draw_dialogue(options, 1, i + 1, ".");
+                        sleep_seconds(1);
+                    }  
+
+                    if(f >= n) {
+                        wclear(options);
+                        draw_dialogue(options, 1, 1, "You caught that mon!");
+                        sleep_seconds(1);
+                        add_mon(p, &random_mon);
+
+                        wclear(options);
+                        draw_dialogue(options, 1, 1, random_mon.name);
+                        draw_dialogue(options, 1, strlen(random_mon.name) + 1, "was added to your party");
+                        break;
+                    } else {
+                        wclear(options);
+                        draw_dialogue(options, 1, 1, "You failed");
+                    }
+
+
+                }
+                p->items[item_index].quantity--;
+                continue;
+            }
             if(input == 'w') {
                 choose_mon(p, battle_w_w / 2);
 
@@ -338,7 +382,7 @@ void battle(Player *p, GameManager gm) {
                 draw_dialogue(options, 1, r_mon_name_len + 7, random_move.name);
 
                 int mod = effectiveness(random_move.type, &p->mons[0].type);
-                int dano = calc_dmg(random_mon.lvl, random_move.power * 7, mod);
+                int dano = calc_dmg(random_mon.lvl, random_move.power * 0.6, mod);
 
                 apply_dmg(&p->mons[0], dano);
                 sleep_seconds(1);
@@ -352,17 +396,9 @@ void battle(Player *p, GameManager gm) {
 
     wclear(options);
     wrefresh(options);
-    
+
     wclear(battle_win);
     wrefresh(battle_win);
-
-    wclear(gm.main_w);
-    wrefresh(gm.main_w);
-
-    wclear(gm.dialog);
-    wrefresh(gm.dialog);
-
-   
 }
 
 // TODO: make trainer battles work

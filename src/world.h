@@ -104,7 +104,7 @@ char* int_to_string(int num);
 
 void sleep_seconds(int seconds);
 
-int get_some_item(Player *p, WINDOW *items, WINDOW *items_options);
+int get_some_item(Player *p, int x_coordinate);
 
 int choose_mon(Player *p, int x_coordinate);
 

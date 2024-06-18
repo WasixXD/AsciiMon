@@ -20,6 +20,12 @@ void handle_input(int input, Player *p, Tile **map) {
     } 
 }
 
+bool add_mon(Player *p, Mon *new_mon) {
+    if(p->n_of_mons >= MAX_MONS) return false; 
+    p->mons[p->n_of_mons] = *new_mon;
+    p->n_of_mons++;
+    return true;
+}
 
 void draw_player(WINDOW *win, Player *p) {
     mvwaddch(win, p->y, p->x, p->body);
