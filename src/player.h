@@ -9,4 +9,6 @@ void refresh_pos(WINDOW *win, Player *p);
 
 void handle_input(int input, Player *p, Tile **map);
 
+bool add_mon(Player *p, Mon *new_mon);
+
 #endif

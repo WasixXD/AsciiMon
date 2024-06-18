@@ -14,7 +14,6 @@
 #define NPC 3
 #define TRAINER 4
 
-void sleep_seconds(int seconds);
 
 typedef struct {
     char *name;
@@ -47,6 +46,7 @@ typedef struct {
     int y;
     char body;
     Mon mons[MAX_MONS];
+    int n_of_mons;
     Item items[2];
 } Player;
 
@@ -101,5 +101,11 @@ void allocate_mons(GameManager *gm);
 void handle_event(Events e, GameManager gm, Player *p);
 
 char* int_to_string(int num);
+
+void sleep_seconds(int seconds);
+
+int get_some_item(Player *p, int x_coordinate);
+
+int choose_mon(Player *p, int x_coordinate);
 
 #endif
