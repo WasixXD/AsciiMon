@@ -290,6 +290,8 @@ void battle(Player *p, GameManager gm) {
             }
 
             if(input == 'e') {
+                wclear(options);
+                draw_dialogue(options, 1, 1, "w - MOVE UP | s - MOVE DOWN | e - CHOOSE");
                 int item_index = get_some_item(p, battle_w_w / 2);
                 Item current_item = p->items[item_index];
 
@@ -334,6 +336,8 @@ void battle(Player *p, GameManager gm) {
                 continue;
             }
             if(input == 'w') {
+                wclear(options);
+                draw_dialogue(options, 1, 1, "w - MOVE UP | s - MOVE DOWN | f - EXIT | space - CHANGE");
                 choose_mon(p, battle_w_w / 2);
 
                 wclear(options);
@@ -344,6 +348,7 @@ void battle(Player *p, GameManager gm) {
                 sleep_seconds(1);
                 continue;
             }
+            
             turn = 1; 
 
             if(check_if_defeated(&random_mon)) {
@@ -381,7 +386,7 @@ void battle(Player *p, GameManager gm) {
                 draw_dialogue(options, 1, r_mon_name_len + 1, " used ");
                 draw_dialogue(options, 1, r_mon_name_len + 7, random_move.name);
 
-                int mod = effectiveness(random_move.type, &p->mons[0].type);
+                int mod = effectiveness(random_move.type, p->mons[0].type);
                 int dano = calc_dmg(random_mon.lvl, random_move.power * 0.6, mod);
 
                 apply_dmg(&p->mons[0], dano);
@@ -401,7 +406,29 @@ void battle(Player *p, GameManager gm) {
     wrefresh(battle_win);
 }
 
-// TODO: make trainer battles work
+
+
+char* trainer_mons_alive_line(Mon mons[], int t_mons) {
+    int line_w = 13;
+    char *line = (char *)malloc(line_w);
+
+
+    int j = 0;
+    for(int i = 0; i < line_w; i++) {
+        
+        if (i % 2 == 1 && j < t_mons) {  // Corrigido para i % 2 == 0
+            line[i] = check_if_defeated(&mons[j]) ? 'x' : 'o';
+            j++;
+        } else {
+            line[i] = '-';
+        }
+    } 
+    line[13] = '\0';
+
+    return line;
+
+}
+
 void battle_trainer(Player *p, GameManager gm, Trainer *t) {
     wclear(gm.main_w);
     wclear(gm.dialog);
@@ -414,11 +441,9 @@ void battle_trainer(Player *p, GameManager gm, Trainer *t) {
     int battle_w_w = 60;
     int battle_w_h = 20;
     WINDOW *battle_win = newwin(battle_w_h, battle_w_w, 0, 0);
-    box(battle_win, 0, 0);  
 
     WINDOW *options = newwin(3, battle_w_w, battle_w_h, 0);
- 
-    Mon random_mon = t->mons[0];  
+    int trainer_mon_index = 0;
 
     int sprite_padding_w = 10;
     int sprite_padding_h =  5;
@@ -426,40 +451,70 @@ void battle_trainer(Player *p, GameManager gm, Trainer *t) {
     int r_mon_x = battle_w_w - sprite_padding_w;
     int r_mon_y = 2;
 
-    int r_mon_name_len = strlen(random_mon.name);
+    int r_mon_name_len = strlen(t->mons[trainer_mon_index].name);
 
     int p_mon_y = battle_w_h - sprite_padding_h;
     int p_mon_x = 2;
 
     int input;
     wclear(options);
-    draw_dialogue(options, 1, 1, random_mon.name);
-    draw_dialogue(options, 1, r_mon_name_len + 1, " is angry and attacks you!");
+    draw_dialogue(options, 1, 1, "Trainer wants to battle with you!");
 
 
     WINDOW *mon_status = newwin(4, 14, p_mon_y - 1, p_mon_x + 10);
     box(mon_status, 0, 0);  
 
-    WINDOW *r_mon_status = newwin(4, 14 , r_mon_y - 1, r_mon_x - 18);
+    WINDOW *r_mon_status = newwin(4, 14 , r_mon_y -1 , r_mon_x - 18);
     box(r_mon_status, 0, 0);
 
-    while(1) {
+    while(party_up(t->mons, t->n_mons)) {
+        box(battle_win, 0, 0);
+    
         draw_mon(battle_win, &p->mons[0], p_mon_y, p_mon_x);
+
+        wclear(mon_status);
         draw_status(mon_status, &p->mons[0], 1, 1);
+        box(mon_status, 0, 0);
+        wrefresh(mon_status);
       
 
-        draw_mon(battle_win, &random_mon, r_mon_y, r_mon_x);
-        draw_status(r_mon_status, &random_mon, 1, 1);
+        wclear(r_mon_status);
+        draw_mon(battle_win, &t->mons[trainer_mon_index], r_mon_y, r_mon_x);
+        draw_status(r_mon_status, &t->mons[trainer_mon_index], 1, 1);
+        char *mons_line = trainer_mons_alive_line(t->mons, t->n_mons);
+        mvwaddstr(battle_win, r_mon_y - 2, r_mon_x - 18, mons_line);
+        wrefresh(battle_win);
+        box(r_mon_status, 0, 0);
+        wrefresh(r_mon_status);
+        
+        if(!party_up(p->mons, p->n_of_mons)) {
+            wclear(options);
+            draw_dialogue(options, 1, 1, "All your mons were defeated");
+            sleep_seconds(1);
+            wclear(options);
+            wrefresh(options);
+            
+            wclear(battle_win);
+            wrefresh(battle_win);
+            return;
+            
+        } 
 
         if(check_if_defeated(&p->mons[0])) {
-            // TODO: Instead of losing, let the player have a chance to change mon
             wclear(options);
             draw_dialogue(options, 1, 1, "Your mon was defeated");
+            sleep_seconds(1);
 
-            sleep_seconds(2);
-            break;
+            choose_mon(p, battle_w_w / 2);
+           
+            wclear(options);
+            draw_dialogue(options, 1, 1, "you changed mon");
+            wclear(battle_win);
+            box(battle_win, 0, 0);
+            wrefresh(battle_win);
+            sleep_seconds(1);
+            continue;
         }
-
 
         // Player turn
         if(turn == 0) {
@@ -473,7 +528,7 @@ void battle_trainer(Player *p, GameManager gm, Trainer *t) {
 
             if(input == 'r') {
                 wclear(options);
-                draw_dialogue(options, 1, 1, "You can't run from a trainer battle");
+                draw_dialogue(options, 1, 1, "You can't run from a trainers battle");
                 
             }
             if(input == 'q') {
@@ -484,9 +539,9 @@ void battle_trainer(Player *p, GameManager gm, Trainer *t) {
                 wclear(options);
 
                 if(p_move.mp > 0) {
-                    int mod = effectiveness(p_move.type, random_mon.type);
+                    int mod = effectiveness(p_move.type, t->mons[trainer_mon_index].type);
                     int dano = calc_dmg(p->mons[0].lvl, p_move.power, mod);
-                    apply_dmg(&random_mon, dano); 
+                    apply_dmg(&t->mons[trainer_mon_index], dano); 
                     draw_dialogue(options, 1, 1, "used ");
                     draw_dialogue(options, 1, 6, p_move.name);
                     sleep_seconds(1);
@@ -501,31 +556,68 @@ void battle_trainer(Player *p, GameManager gm, Trainer *t) {
                 } else {
                     draw_dialogue(options, 1, 1, "You dont have MP to use this move");
                 }
-
-
                 sleep_seconds(1);
             }
+
+            if(input == 'e') {
+                wclear(options);
+                draw_dialogue(options, 1, 1, "w - MOVE UP | s - MOVE DOWN | e - CHOOSE");
+                int item_index = get_some_item(p, battle_w_w / 2);
+                Item current_item = p->items[item_index];
+
+                //Only doing this way because i will handle only two itens
+                if(strcmp(current_item.name, "Potion") == 0 && current_item.quantity > 0) {
+                    p->mons[0].current_hp += 10; 
+                    p->mons[0].current_hp = p->mons[0].current_hp > p->mons[0].max_hp? p->mons[0].max_hp : p->mons[0].current_hp;
+                    p->items[item_index].quantity--;
+                    wclear(options);
+                    draw_dialogue(options, 1, 1, "You used a potion and recovered 10 hp");
+                    continue;
+                } else if(strcmp(current_item.name, "MonBall") == 0 && current_item.quantity > 0) {
+                    wclear(options);
+                    draw_dialogue(options, 1, 1, "You threw a MonBall");
+                    sleep_seconds(1);
+                    wclear(options);
+                    draw_dialogue(options, 1, 1, "You can't capture another trainer mon!");
+                }
+            }
+            if(input == 'w') {
+                wclear(options);
+                draw_dialogue(options, 1, 1, "w - MOVE UP | s - MOVE DOWN | f - EXIT | space - CHANGE");
+                choose_mon(p, battle_w_w / 2);
+
+                wclear(options);
+                draw_dialogue(options, 1, 1, "you changed mon");
+                wclear(battle_win);
+                box(battle_win, 0, 0);
+                wrefresh(battle_win);
+                sleep_seconds(1);
+                continue;
+            }
+            
+            
             turn = 1; 
 
-            if(check_if_defeated(&random_mon)) {
+            if(check_if_defeated(&t->mons[trainer_mon_index])) {
                 wclear(options);
-                draw_dialogue(options, 1, 1, random_mon.name);
+                draw_dialogue(options, 1, 1, t->mons[trainer_mon_index].name);
                 draw_dialogue(options, 1, r_mon_name_len + 1, " was defeated");
-                sleep_seconds(2);
-                int total_xp = rand() % random_mon.lvl + 1;
-                p->mons[0].xp_points += total_xp;
 
-                wclear(options);
-                draw_dialogue(options, 1, 1, int_to_string(total_xp));
-                draw_dialogue(options, 1, 3, "xp was gained");
-                sleep_seconds(2);
+                sleep_seconds(1);
+                if(trainer_mon_index + 1 < t->n_mons){
 
-                if(lvl_up(&p->mons[0])) {
-                   wclear(options);
-                   draw_dialogue(options, 1, 1, "you leveled up"); 
-                   sleep_seconds(1);
+                    wclear(options);
+                    draw_dialogue(options, 1, 1, "Trainer will change his mon");
+                    sleep_seconds(1);
+                    trainer_mon_index++;
+                
+                    wclear(battle_win);
+                    turn = 0;
+                    
+                    continue;
+                } else {
+                    break;
                 }
-                break;
             }
 
         } else {   
@@ -533,17 +625,17 @@ void battle_trainer(Player *p, GameManager gm, Trainer *t) {
             sleep_seconds(2);
             wclear(options);
             
-            int random_move_index = rand() % random_mon.total_moves;
-            Move random_move = random_mon.moves[random_move_index];
+            int random_move_index = rand() % t->mons[trainer_mon_index].total_moves;
+            Move random_move = t->mons[trainer_mon_index].moves[random_move_index];
 
             if(random_move.mp > 0) {
-                random_mon.moves[random_move_index].mp--;
-                draw_dialogue(options, 1, 1, random_mon.name);
+                t->mons[trainer_mon_index].moves[random_move_index].mp--;
+                draw_dialogue(options, 1, 1, t->mons[trainer_mon_index].name);
                 draw_dialogue(options, 1, r_mon_name_len + 1, " used ");
                 draw_dialogue(options, 1, r_mon_name_len + 7, random_move.name);
 
-                int mod = effectiveness(random_move.type, &p->mons[0].type);
-                int dano = calc_dmg(random_mon.lvl, random_move.power, mod);
+                int mod = effectiveness(random_move.type, p->mons[0].type);
+                int dano = calc_dmg(t->mons[trainer_mon_index].lvl, random_move.power, mod);
 
                 apply_dmg(&p->mons[0], dano);
                 sleep_seconds(1);
@@ -555,12 +647,24 @@ void battle_trainer(Player *p, GameManager gm, Trainer *t) {
         
     }
 
+    sleep_seconds(2);
+    int total_xp = (rand() % t->mons[trainer_mon_index].lvl + 1) * t->n_mons;
+    p->mons[0].xp_points += total_xp;
+
+    wclear(options);
+    draw_dialogue(options, 1, 1, int_to_string(total_xp));
+    draw_dialogue(options, 1, 3, "xp was gained");
+    sleep_seconds(2);
+
+    if(lvl_up(&p->mons[0])) {
+        wclear(options);
+        draw_dialogue(options, 1, 1, "you leveled up"); 
+        sleep_seconds(1);
+    }
+
     wclear(options);
     wrefresh(options);
     
     wclear(battle_win);
-    wrefresh(battle_win);wclear(gm.main_w);
-    wclear(gm.dialog);
-    wrefresh(gm.main_w);
-    wrefresh(gm.dialog);
+    wrefresh(battle_win);
 }

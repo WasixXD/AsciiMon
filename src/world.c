@@ -193,6 +193,10 @@ Events check_for_event(int p_x, int p_y, GameManager gm) {
             if(strcmp(trainer_tile.type, "WALL") == 0) break;
 
             if(strcmp(trainer_tile.type, "TRAINER") == 0) {
+                //little trick
+                sleep_seconds(1);
+                gm.current_map[y][x] = (Tile){.walkable = false, .type = "TRAINER_WASHED_UP", .x = x , .y = y, .sprite = 't', .pair = TRAINER};
+
                 return TRAINER_BATTLE;
             }
         }
@@ -225,7 +229,7 @@ void handle_event(Events e, GameManager gm, Player *p) {
             wclear(gm.dialog);
             draw_dialogue(gm.dialog, 1, 3, "Hey, let's battle");
 
-            int t_n_mons = (rand() % 3) +  1;
+            int t_n_mons = (rand() % 3) +  2;
             Trainer new_trainer = (Trainer){.name = "Trainer", .n_mons = t_n_mons};
 
             for(int i = 0; i < t_n_mons; i++) {
@@ -236,8 +240,8 @@ void handle_event(Events e, GameManager gm, Player *p) {
                 some_mon.current_hp = some_mon.max_hp;
                 new_trainer.mons[i] = some_mon;
             }
-
-            // battle_trainer(p, gm, &new_trainer);
+            
+            battle_trainer(p, gm, &new_trainer);
             break;
         }
 
