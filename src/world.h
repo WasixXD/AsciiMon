@@ -13,6 +13,7 @@
 #define GRASS 2
 #define NPC 3
 #define TRAINER 4
+#define STAR 5
 
 
 typedef struct {
@@ -61,6 +62,7 @@ typedef enum  {
     NPC_DIALOG,
     TRAINER_BATTLE,
     NONE,
+    GAME_FINISH,
 } Events ;
 
 

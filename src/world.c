@@ -92,7 +92,7 @@ void draw_world(GameManager gm) {
 }
 
 void draw_dialogue(WINDOW *dialogue, int y, int x, char *diag) {
-    mvwprintw(dialogue, y, x, diag);
+    mvwprintw(dialogue, y, x, "%s", diag);
     box(dialogue, 0, 0);
     wrefresh(dialogue);
 }
@@ -139,6 +139,12 @@ Tile** parse_world(char **map, int map_cols, int map_rows) {
                     parsed[i][j] = trainer_tile;
                     break;
                 }
+
+                case '*': {
+                    Tile star_tile = (Tile){.walkable = true, .type = "FINISH", .x = j, .y = i, .sprite = '*', .pair = STAR};
+                    parsed[i][j] = star_tile;
+                    break;
+                }
             }
         }
     }
@@ -151,18 +157,20 @@ Events check_for_event(int p_x, int p_y, GameManager gm) {
     Tile current_player_tile = gm.current_map[p_y][p_x];
     srand(time(NULL));
 
-    if(current_player_tile.type == "GRASS") {
+    if(strcmp(current_player_tile.type, "GRASS") == 0) {
         double chance_to_battle = (double)rand() / RAND_MAX;
         if(chance_to_battle >= 0.5) {
             return WILD_MON_BATTLE;
         }
+    } else if(strcmp(current_player_tile.type, "FINISH") == 0) {
+        return GAME_FINISH;
     }
 
     // Check for npc
     for(int i = -1; i < 2; i++) {
         for(int j = -1; j < 2; j++) {
             Tile check_for_npc = gm.current_map[p_y + i][p_x + j];
-            if(check_for_npc.type == "NPC") {
+            if(strcmp(check_for_npc.type, "NPC") == 0) {
                 return NPC_DIALOG;
             }
         }
@@ -182,9 +190,9 @@ Events check_for_event(int p_x, int p_y, GameManager gm) {
 
             if(x < 0 || x >= gm.c_map_rows || y < 0 || y >= gm.c_map_cols) break;
 
-            if(trainer_tile.type == "WALL") break;
+            if(strcmp(trainer_tile.type, "WALL") == 0) break;
 
-            if(trainer_tile.type == "TRAINER") {
+            if(strcmp(trainer_tile.type, "TRAINER") == 0) {
                 return TRAINER_BATTLE;
             }
         }
@@ -232,6 +240,15 @@ void handle_event(Events e, GameManager gm, Player *p) {
             // battle_trainer(p, gm, &new_trainer);
             break;
         }
+
+        case GAME_FINISH: {
+            delwin(gm.main_w);
+            delwin(gm.dialog);
+            printf("Thank you for playing!\n");
+            endwin();
+            exit(0);
+            break;
+        }
     }
 }
 
@@ -256,6 +273,7 @@ void allocate_mons(GameManager *gm) {
     n = scandir(mon_folder_path, &namelist, txt_filter, alphasort);
 
     gm->all_mons = (Mon*)malloc(n * sizeof(Mon));
+
     if(n < 0) {
         perror("Scandir");
         return;
@@ -268,8 +286,8 @@ void allocate_mons(GameManager *gm) {
         int sprite_row = 0;
         Mon new_mon;
 
-        char filePath[50];
-        // concat ./mons/ + name of the file
+        char filePath[256];
+
         snprintf(filePath, sizeof(filePath), "%s%s", mon_folder_path, namelist[n]->d_name);
         remove_extension(namelist[n]->d_name);
         new_mon.name = namelist[n]->d_name;
@@ -432,7 +450,7 @@ int choose_mon(Player *p, int x_coordinate) {
             strncat(health_display, int_to_string(p->mons[i].max_hp), 7);
 
             mvwaddstr(mon_box, 1, 1, p->mons[i].name);
-            mvwaddstr(mon_box, 1, strlen(&p->mons[i].name) + 2, int_to_string(p->mons[i].lvl));
+            mvwaddstr(mon_box, 1, strlen(p->mons[i].name) + 2, int_to_string(p->mons[i].lvl));
             mvwaddstr(mon_box, 2, 1, health_display);
             mvwaddstr(mon_box, 3, 1, p->mons[i].type);
 
