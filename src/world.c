@@ -145,12 +145,29 @@ Tile** parse_world(char **map, int map_cols, int map_rows) {
                     parsed[i][j] = star_tile;
                     break;
                 }
+
+                case 'H': {
+                    Tile heal_tile = (Tile){.walkable = true, .type = "HEAL", .x = j, .y = i, .sprite = 'H', .pair = STAR};
+                    parsed[i][j] = heal_tile;
+                    break;
+                }
             }
         }
     }
     return parsed;
 }
 
+void heal_mons(Mon mons[], int n_mons, int n_moves) {
+    for(int i = 0; i < n_mons; i++) {
+        mons[i].current_hp = mons[i].max_hp;
+        for(int j = 0; j < n_moves; j++){
+            mons[i].moves[j].mp += 2;
+        }   
+    }
+
+
+    
+}
 
 // In theory the game can only handle one event per time, so, its better to avoid having a battle aside a npc or a trainer
 Events check_for_event(int p_x, int p_y, GameManager gm) {
@@ -164,6 +181,8 @@ Events check_for_event(int p_x, int p_y, GameManager gm) {
         }
     } else if(strcmp(current_player_tile.type, "FINISH") == 0) {
         return GAME_FINISH;
+    } else if(strcmp(current_player_tile.type, "HEAL") == 0) {
+        return HEAL_MONS;
     }
 
     // Check for npc
@@ -248,13 +267,24 @@ void handle_event(Events e, GameManager gm, Player *p) {
         case GAME_FINISH: {
             delwin(gm.main_w);
             delwin(gm.dialog);
-            printf("Thank you for playing!\n");
             endwin();
+            printf("Thank you for playing!\n");
             exit(0);
+            break;
+        }
+
+        case HEAL_MONS: {
+            wclear(gm.dialog);
+            draw_dialogue(gm.dialog, 1, 1, "Healing your mons");
+            sleep_seconds(2);
+            heal_mons(p->mons, p->n_of_mons, 4);
+            
             break;
         }
     }
 }
+
+
 
 int txt_filter(const struct dirent *entry) {
     const char *ext = strrchr(entry->d_name, '.');
