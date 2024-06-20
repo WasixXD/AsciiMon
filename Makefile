@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Iinclude 
+CFLAGS = -Wall -Wextra -Iinclude
 
 SRC_DIR = src
 BUILD_DIR = build
@@ -8,17 +8,16 @@ INCLUDE_DIR = include
 
 SRC = $(wildcard $(SRC_DIR)/*.c)
 OBJ = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRC))
-EXEC = $(BIN_DIR)/main
+EXEC = main.o
 
 HEADERS = $(wildcard $(INCLUDE_DIR)/*.h)
 SRCS = $(wildcard $(SRC_DIR)/*.c)
 
-.PHONY: all 
+.PHONY: all
 
 all: $(EXEC) run_script
 
 $(EXEC): $(OBJ)
-	@mkdir -p $(BIN_DIR)
 	$(CC) $(CFLAGS) $^ -o $@ -lncurses
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(HEADERS)
