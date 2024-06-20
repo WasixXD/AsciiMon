@@ -24,49 +24,69 @@ void sleep_seconds(int seconds) {
 #endif
 }
 
-
 const Move all_possible_moves[] = {
-    {.name = "Tackle", .power = 40, .type = "Normal", .mp = 10 }, // 0
-    {.name = "Ember", .power = 55, .type = "Fire", .mp = 8 }, // 1
-    {.name = "Bubbles", .power = 55, .type = "Water", .mp = 8 }, // 2
-    {.name = "Leafs", .power = 55, .type = "Grass", .mp = 8 }, // 3
-    {.name = "Ice Spikes", .power = 55, .type = "Ice", .mp = 8 }, // 4
-    {.name = "Bite", .power = 50, .type = "Dark", .mp = 12 }, // 5
-    {.name = "Punch", .power = 50, .type = "Fighter", .mp = 12 }, // 6
-    {.name = "Slash", .power = 45, .type = "Normal", .mp = 9 }, // 7
-    {.name = "Flame Wheel", .power = 60, .type = "Fire", .mp = 6 }, // 8
-    {.name = "Aqua Jet", .power = 53, .type = "Water", .mp = 10 }, // 9
-    {.name = "Vine Whip", .power = 48, .type = "Grass", .mp = 11 }, // 10
-    {.name = "Frost Bite", .power = 58, .type = "Ice", .mp = 7 }, // 11
-    {.name = "Shadow Sneak", .power = 45, .type = "Dark", .mp = 11 }, // 12
-    {.name = "Karate Chop", .power = 55, .type = "Fighter", .mp = 8 }, // 13
-    {.name = "Headbutt", .power = 48, .type = "Normal", .mp = 11 }, // 14
-    {.name = "Fire Spin", .power = 65, .type = "Fire", .mp = 5 }, // 15
-    {.name = "Water Pulse", .power = 58, .type = "Water", .mp = 7 }, // 16
-    {.name = "Solar Beam", .power = 100, .type = "Grass", .mp = 4 }, // 17
-    {.name = "Ice Beam", .power = 63, .type = "Ice", .mp = 6 }, // 18
-    {.name = "Dark Pulse", .power = 55, .type = "Dark", .mp = 8 }, // 19
-    {.name = "Dynamic Punch", .power = 60, .type = "Fighter", .mp = 5 }, // 20
-    {.name = "Body Slam", .power = 45, .type = "Normal", .mp = 11 }, // 21
-    {.name = "Blaze Kick", .power = 58, .type = "Fire", .mp = 7 }, // 22
-    {.name = "Hydro Pump", .power = 65, .type = "Water", .mp = 5 }, // 23
-    {.name = "Leaf Blade", .power = 53, .type = "Grass", .mp = 9 }, // 24
-    {.name = "Blizzard", .power = 70, .type = "Ice", .mp = 4 }, // 25
-    {.name = "Night Slash", .power = 50, .type = "Dark", .mp = 8 }, // 26
-    {.name = "Mach Punch", .power = 48, .type = "Fighter", .mp = 10 }, // 27
-    {.name = "Hyper Beam", .power = 75, .type = "Normal", .mp = 3 }, // 28
-    {.name = "Inferno", .power = 68, .type = "Fire", .mp = 5 }, // 29
-    {.name = "Surf", .power = 60, .type = "Water", .mp = 6 }, // 30
-    {.name = "Giga Drain", .power = 58, .type = "Grass", .mp = 7 }, // 31
-    {.name = "Hailstorm", .power = 65, .type = "Ice", .mp = 5 }, // 32
-    {.name = "Shadow Claw", .power = 53, .type = "Dark", .mp = 9 }, // 33
-    {.name = "Focus Punch", .power = 68, .type = "Fighter", .mp = 5 }, // 34
-    {.name = "Quick Attack", .power = 35, .type = "Normal", .mp = 13 }, // 35
-    {.name = "Flamethrower", .power = 63, .type = "Fire", .mp = 6 }, // 36
-    {.name = "Bubble Beam", .power = 55, .type = "Water", .mp = 8 }, // 37
-    {.name = "Razor Leaf", .power = 48, .type = "Grass", .mp = 11 }, // 38
-    {.name = "Ice Fang", .power = 53, .type = "Ice", .mp = 9 }, // 39
+    // Normal Moves
+    {.name = "Scratch", .power = 35, .type = "Normal", .mp = 15, .move_mp = 15 }, // 0
+    {.name = "Pound", .power = 40, .type = "Normal", .mp = 14, .move_mp = 14 }, // 1
+    {.name = "Quick Jab", .power = 30, .type = "Normal", .mp = 16, .move_mp = 16 }, // 2
+    {.name = "Slam", .power = 38, .type = "Normal", .mp = 13, .move_mp = 13 }, // 3
+    {.name = "Head Smash", .power = 42, .type = "Normal", .mp = 12, .move_mp = 12 }, // 4
+    {.name = "Claw Swipe", .power = 36, .type = "Normal", .mp = 14, .move_mp = 14 }, // 5
+    {.name = "Bite", .power = 30, .type = "Normal", .mp = 16, .move_mp = 16 }, // 6
+    {.name = "Body Slam", .power = 44, .type = "Normal", .mp = 11, .move_mp = 11 }, // 7
+    {.name = "Tackle", .power = 40, .type = "Normal", .mp = 13, .move_mp = 13 }, // 8
+    {.name = "Double Hit", .power = 45, .type = "Normal", .mp = 10, .move_mp = 10 }, // 9
+
+    // Fire Moves
+    {.name = "Flame Burst", .power = 60, .type = "Fire", .mp = 7, .move_mp = 7 }, // 10
+    {.name = "Fire Fang", .power = 65, .type = "Fire", .mp = 6, .move_mp = 6 }, // 11
+    {.name = "Ember", .power = 55, .type = "Fire", .mp = 9, .move_mp = 9 }, // 12
+    {.name = "Blaze Kick", .power = 58, .type = "Fire", .mp = 8, .move_mp = 8 }, // 13
+    {.name = "Inferno", .power = 68, .type = "Fire", .mp = 5, .move_mp = 5 }, // 14
+
+    // Water Moves
+    {.name = "Water Blast", .power = 63, .type = "Water", .mp = 8, .move_mp = 8 }, // 15
+    {.name = "Aqua Tail", .power = 60, .type = "Water", .mp = 9, .move_mp = 9 }, // 16
+    {.name = "Water Pulse", .power = 58, .type = "Water", .mp = 10, .move_mp = 10 }, // 17
+    {.name = "Surf", .power = 65, .type = "Water", .mp = 7, .move_mp = 7 }, // 18
+    {.name = "Hydro Pump", .power = 70, .type = "Water", .mp = 6, .move_mp = 6 }, // 19
+
+    // Grass Moves
+    {.name = "Leaf Blade", .power = 60, .type = "Grass", .mp = 8, .move_mp = 8 }, // 20
+    {.name = "Vine Whip", .power = 55, .type = "Grass", .mp = 9, .move_mp = 9 }, // 21
+    {.name = "Giga Drain", .power = 63, .type = "Grass", .mp = 7, .move_mp = 7 }, // 22
+    {.name = "Solar Beam", .power = 75, .type = "Grass", .mp = 5, .move_mp = 5 }, // 23
+    {.name = "Leaf Storm", .power = 68, .type = "Grass", .mp = 6, .move_mp = 6 }, // 24
+
+    // Dark Moves
+    {.name = "Shadow Claw", .power = 60, .type = "Dark", .mp = 8, .move_mp = 8 }, // 25
+    {.name = "Night Slash", .power = 63, .type = "Dark", .mp = 7, .move_mp = 7 }, // 26
+    {.name = "Dark Pulse", .power = 68, .type = "Dark", .mp = 6, .move_mp = 6 }, // 27
+    {.name = "Shadow Sneak", .power = 55, .type = "Dark", .mp = 9, .move_mp = 9 }, // 28
+    {.name = "Bite", .power = 60, .type = "Dark", .mp = 8, .move_mp = 8 }, // 29
+
+    // Fighter Moves
+    {.name = "Punch", .power = 50, .type = "Fighter", .mp = 12, .move_mp = 12 }, // 30
+    {.name = "Kick", .power = 55, .type = "Fighter", .mp = 10, .move_mp = 10 }, // 31
+    {.name = "Karate Chop", .power = 58, .type = "Fighter", .mp = 9, .move_mp = 9 }, // 32
+    {.name = "Dynamic Punch", .power = 68, .type = "Fighter", .mp = 8, .move_mp = 8 }, // 33
+    {.name = "Focus Punch", .power = 75, .type = "Fighter", .mp = 7, .move_mp = 7 }, // 34
+
+    // Psychic Moves
+    {.name = "Psybeam", .power = 55, .type = "Psychic", .mp = 10, .move_mp = 10 }, // 35
+    {.name = "Psychic", .power = 65, .type = "Psychic", .mp = 8, .move_mp = 8 }, // 36
+    {.name = "Zen Headbutt", .power = 70, .type = "Psychic", .mp = 7, .move_mp = 7 }, // 37
+    {.name = "Psyshock", .power = 60, .type = "Psychic", .mp = 9, .move_mp = 9 }, // 38
+    {.name = "Future Sight", .power = 75, .type = "Psychic", .mp = 6, .move_mp = 6 }, // 39
+
+    // Ice Moves
+    {.name = "Ice Shard", .power = 58, .type = "Ice", .mp = 8, .move_mp = 8 }, // 40
+    {.name = "Frost Bite", .power = 63, .type = "Ice", .mp = 7, .move_mp = 7 }, // 41
+    {.name = "Blizzard", .power = 70, .type = "Ice", .mp = 5, .move_mp = 5 }, // 42
+    {.name = "Ice Beam", .power = 65, .type = "Ice", .mp = 6, .move_mp = 6 }, // 43
+    {.name = "Hailstorm", .power = 68, .type = "Ice", .mp = 6, .move_mp = 6 }, // 44
 };
+
 
 char* int_to_string(int num) {
     
