@@ -60,9 +60,9 @@ int main(void) {
     init_pair(TRAINER, COLOR_RED, COLOR_BLACK);
     init_pair(STAR, COLOR_YELLOW, COLOR_BLACK);
 
-    Player p = { .x = 1, .y = 1, .body = player_body };
+    Player p = { .x = 2, .y = 1, .body = player_body };
 
-    WINDOW *win = newwin(map_rows, map_cols, p.x, p.y);
+    WINDOW *win = newwin(map_rows, map_cols, 0, 0);
 
     GameManager gm = {
         .current_map = parsed_map, 
@@ -72,12 +72,12 @@ int main(void) {
         .dialog = dialogue,
     };
     allocate_mons(&gm);
-    p.mons[0] = gm.all_mons[2]; 
+    p.mons[0] = gm.all_mons[0]; 
 
     p.n_of_mons += 1;
 
     p.items[0] = (Item){ .name = "Potion", .desc = "Restore 10 HP \n from your mon", .quantity = 10 };
-    p.items[1] = (Item){ .name = "MonBall",.desc = "Used to capture \n Mons", .quantity = 20};
+    p.items[1] = (Item){ .name = "MonBall",.desc = "Used to capture \n Mons", .quantity = 12};
 
     draw_dialogue(gm.dialog, 3, 1, "wasd - MOVE | q - QUIT | e - ITENS | f - MONS");
     draw_world(gm);

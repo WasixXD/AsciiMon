@@ -217,16 +217,18 @@ Events check_for_event(int p_x, int p_y, GameManager gm) {
 
     //Check for trainer
     int directions[4][2] = { {1, 0}, {-1, 0}, {0, 1}, {0, -1} };
+
     for(int i = 0; i < 4; i++) {
         int x = p_x;
         int y = p_y;
+        
         for(int dist = 0; dist < 3; dist++) {
             x += directions[i][0];
             y += directions[i][1];
 
-            Tile trainer_tile = gm.current_map[y][x];
+            if(x < 0 || x >= gm.c_map_cols || y < 0 || y >= gm.c_map_rows) break;
 
-            if(x < 0 || x >= gm.c_map_rows || y < 0 || y >= gm.c_map_cols) break;
+            Tile trainer_tile = gm.current_map[y][x];
 
             if(strcmp(trainer_tile.type, "WALL") == 0) break;
 
@@ -239,6 +241,7 @@ Events check_for_event(int p_x, int p_y, GameManager gm) {
             }
         }
     }
+ 
     return NONE;
 }
 
