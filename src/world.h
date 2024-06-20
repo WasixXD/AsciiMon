@@ -63,7 +63,6 @@ typedef enum  {
     TRAINER_BATTLE,
     NONE,
     GAME_FINISH,
-    HEAL_MONS,
 } Events ;
 
 
@@ -110,7 +109,5 @@ void sleep_seconds(int seconds);
 int get_some_item(Player *p, int x_coordinate);
 
 int choose_mon(Player *p, int x_coordinate);
-
-void heal_mons(Mon mons[], int n_mons, int n_moves);
 
 #endif

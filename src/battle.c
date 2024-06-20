@@ -299,7 +299,6 @@ void battle(Player *p, GameManager gm) {
                 if(strcmp(current_item.name, "Potion") == 0 && current_item.quantity > 0) {
                     p->mons[0].current_hp += 10; 
                     p->mons[0].current_hp = p->mons[0].current_hp > p->mons[0].max_hp? p->mons[0].max_hp : p->mons[0].current_hp;
-                    continue;
                 } else if(strcmp(current_item.name, "MonBall") == 0 && current_item.quantity > 0) {
                     wclear(options);
                     draw_dialogue(options, 1, 1, "You threw a MonBall");
@@ -334,6 +333,7 @@ void battle(Player *p, GameManager gm) {
 
                 }
                 p->items[item_index].quantity--;
+                continue;
             }
             if(input == 'w') {
                 wclear(options);
